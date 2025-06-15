@@ -1,9 +1,34 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* --------  Minimal CSS (sin Tailwind) -------- */
+body          { margin:0; font-family:system-ui, sans-serif; }
+.bg-gray-100  { background:#f5f5f5; }
+.container    { max-width:400px; margin:4rem auto; padding:2rem;
+                background:#fff; border-radius:12px;
+                box-shadow:0 4px 12px rgba(0,0,0,.08); }
+.title        { font-size:1.5rem; font-weight:700; text-align:center;
+                margin-bottom:1.5rem; }
 
-.input { @apply px-3 py-2 border rounded-lg w-full; }
-.btn-primary { @apply bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700; }
-.btn-danger  { @apply bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700; }
-.view-title  { @apply text-xl font-bold mb-4; }
-.th          { @apply px-4 py-2 text-left; }
+.input        { width:100%; padding:0.5rem 0.75rem; border:1px solid #ccc;
+                border-radius:8px; }
+
+.btn          { padding:0.5rem 1.25rem; background:#2563eb; color:#fff;
+                border:none; border-radius:8px; cursor:pointer; }
+.btn:hover    { background:#1e4dd8; }
+
+.btn-danger   { padding:0.4rem 1rem; background:#dc2626; color:#fff;
+                border:none; border-radius:8px; cursor:pointer; }
+.btn-danger:hover { background:#b91c1c; }
+
+.link         { color:#2563eb; text-decoration:none; }
+.link:hover   { text-decoration:underline; }
+
+.navbar       { background:#fff; box-shadow:0 2px 4px rgba(0,0,0,.06);
+                padding:1rem 1.5rem; display:flex; justify-content:space-between;
+                align-items:center; }
+.brand        { font-weight:700; }
+
+.view-title   { font-size:1.25rem; font-weight:700; margin-bottom:1rem; }
+.hidden       { display:none; }
+
+table         { width:100%; border-collapse:collapse; }
+th, td        { padding:0.5rem 1rem; text-align:left; }
+thead tr      { background:#f0f0f0; }

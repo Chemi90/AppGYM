@@ -3,25 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gym Tracker – Acceso</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
+  <title>Gym Tracker – Acceso</title>
   <link rel="stylesheet" href="assets/css/styles.css" />
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
-<body class="min-h-screen flex items-center justify-center bg-gray-100">
-  <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
-    <h1 id="form-title" class="text-2xl font-bold mb-6 text-center">Iniciar sesión</h1>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="container">
+    <h1 id="form-title" class="title">Iniciar sesión</h1>
+
     <form id="auth-form" class="space-y-4">
-      <input id="email" type="email" placeholder="Correo electrónico" required class="input" />
-      <input id="password" type="password" placeholder="Contraseña" minlength="8" required class="input" />
-      <input id="confirm" type="password" placeholder="Repite tu contraseña" class="input hidden" />
+      <input id="email"    class="input" type="email"    placeholder="Correo electrónico" required />
+      <input id="password" class="input" type="password" placeholder="Contraseña" minlength="8" required />
+      <input id="confirm"  class="input hidden" type="password" placeholder="Repite tu contraseña" />
+
       <div class="g-recaptcha" data-sitekey="6Lf-42ErAAAAAFLXRkaz4kxHYAohGqDjhpVDoqZd"></div>
-      <button id="submit-btn" class="btn-primary w-full">Entrar</button>
+
+      <button id="submit-btn" class="btn w-full">Entrar</button>
     </form>
+
     <p class="text-center text-sm mt-4">
-      <a id="toggle-link" href="#" class="text-blue-600 hover:underline">¿No tienes cuenta? Regístrate</a>
+      <a id="toggle-link" href="#" class="link">¿No tienes cuenta? Regístrate</a>
     </p>
   </div>
+
   <script src="assets/js/app.js" type="module"></script>
 </body>
 </html>
