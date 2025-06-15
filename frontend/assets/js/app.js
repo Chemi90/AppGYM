@@ -39,14 +39,9 @@ function authPage() {
   form.onsubmit = async e => {
     e.preventDefault();
 
-    /* ——— CAPTURAR TOKEN DEL CAPTCHA ——— */
-const recaptchaToken = grecaptcha.getResponse();   // ← Válido con api.js
-if (!recaptchaToken) return alert("Marca el reCAPTCHA antes de continuar");
-
     const body = {
       email:    form.email.value,
-      password: form.password.value,
-      recaptcha: recaptchaToken
+      password: form.password.value
     };
     if (mode === "register") body.confirm = form.confirm.value;
 
@@ -55,8 +50,6 @@ if (!recaptchaToken) return alert("Marca el reCAPTCHA antes de continuar");
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
     });
-
-    grecaptcha.reset();                      // limpia captcha tras cada intento
 
     if (!res.ok) return alert(await res.text());
     const { token } = await res.json();
