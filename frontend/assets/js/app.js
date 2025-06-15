@@ -14,7 +14,7 @@ const create = (tag, cls = "") => {
   return e;
 };
 
-/* ----------  Auth page (index) ---------- */
+/* ----------  Auth page ---------- */
 if (location.pathname.endsWith("/index.html") || location.pathname === "/") {
   authPage();
 } else {
@@ -22,25 +22,31 @@ if (location.pathname.endsWith("/index.html") || location.pathname === "/") {
 }
 
 function authPage() {
-  const form   = qs("#auth-form");
-  const confirm= qs("#confirm");
-  const toggle = qs("#toggle-link");
+  const form    = qs("#auth-form");
+  const confirm = qs("#confirm");
+  const toggle  = qs("#toggle-link");
   let mode = "login";
 
   toggle.onclick = e => { e.preventDefault(); swap(); };
-  const swap = () => {
+
+  function swap() {
     mode = mode === "login" ? "register" : "login";
     confirm.classList.toggle("hidden", mode === "login");
     qs("#form-title").textContent = mode === "login" ? "Iniciar sesión" : "Crear cuenta";
     qs("#submit-btn").textContent = mode === "login" ? "Entrar" : "Registrar";
-  };
+  }
 
   form.onsubmit = async e => {
     e.preventDefault();
+
+    /* ——— CAPTURAR TOKEN DEL CAPTCHA ——— */
+    const recaptchaToken = grecaptcha.getResponse();
+    if (!recaptchaToken) return alert("Marca el reCAPTCHA antes de continuar");
+
     const body = {
-      email: form.email.value,
+      email:    form.email.value,
       password: form.password.value,
-      recaptcha: grecaptcha.getResponse()
+      recaptcha: recaptchaToken
     };
     if (mode === "register") body.confirm = form.confirm.value;
 
@@ -49,6 +55,9 @@ function authPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
     });
+
+    grecaptcha.reset();                      // limpia captcha tras cada intento
+
     if (!res.ok) return alert(await res.text());
     const { token } = await res.json();
     localStorage.setItem(TOKEN_KEY, token);

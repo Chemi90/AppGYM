@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gym Tracker – Acceso</title>
+
+  <!-- Estilos propios -->
   <link rel="stylesheet" href="assets/css/styles.css" />
+
+  <!-- reCAPTCHA v2  (Checkbox) -->
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
@@ -16,7 +20,8 @@
       <input id="password" class="input" type="password" placeholder="Contraseña" minlength="8" required />
       <input id="confirm"  class="input hidden" type="password" placeholder="Repite tu contraseña" />
 
-      <div class="g-recaptcha" data-sitekey="6Lf-42ErAAAAAFLXRkaz4kxHYAohGqDjhpVDoqZd"></div>
+      <!-- NUEVA Site Key aquí -->
+      <div class="g-recaptcha" data-sitekey="TU_SITE_KEY_V2"></div>
 
       <button id="submit-btn" class="btn w-full">Entrar</button>
     </form>
