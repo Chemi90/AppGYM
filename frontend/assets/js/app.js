@@ -1,4 +1,4 @@
-const API_BASE = import.meta?.env?.VITE_API_BASE || "https://YOUR-BACKEND.up.railway.app";
+const API_BASE = import.meta?.env?.VITE_API_BASE || "https://appgym-api.up.railway.app";
 const TOKEN_KEY = "gym_token";
 
 // Helpers
