@@ -1,3 +1,4 @@
+// File: backend/src/main/java/com/example/AppGYM/config/SecurityConfig.java
 package com.example.AppGYM.config;
 
 import lombok.RequiredArgsConstructor;
@@ -19,11 +20,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  private final JwtFilter jwtFilter;         // bean existente
-  private final UserDetailsService users;    // para el provider
-  private final PasswordEncoder passwordEnc; // viene de AppConfig
+  private final JwtFilter jwtFilter;
+  private final UserDetailsService users;
+  private final PasswordEncoder passwordEnc;
+  private final CorsConfig corsConfig;                 // Bean con CorsConfigurationSource
 
-  /** AuthenticationManager sin referirse a JwtService */
+  /* ---------- AuthenticationManager ---------- */
   @Bean
   public AuthenticationManager authManager() {
     DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -32,15 +34,22 @@ public class SecurityConfig {
     return provider::authenticate;
   }
 
+  /* ---------- Main security chain ---------- */
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
+            // CORS (estilo Spring Security 6.1+)
+            .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
+            // CSRF off porque es API stateless
             .csrf(cs -> cs.disable())
+            // JWT = stateless
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // Rutas públicas
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/auth/**", "/actuator/health").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .anyRequest().authenticated())
+            // Filtro JWT antes del UsernamePasswordAuthenticationFilter
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
