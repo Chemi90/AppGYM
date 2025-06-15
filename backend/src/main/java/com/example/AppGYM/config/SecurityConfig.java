@@ -1,6 +1,6 @@
 package com.example.AppGYM.config;
 
-import com.example.AppGYM.config.JwtFilter;        // importa tu bean
+import com.example.AppGYM.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,14 +20,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  // inyecta el AuthenticationProvider que devuelve JwtService
-  private final ProviderManager authenticationManager;
-  // inyecta el filtro como bean
-  private final JwtFilter jwtFilter;
+  private final JwtService jwtService;   // sólo para obtener el AuthenticationProvider
+  private final JwtFilter jwtFilter;     // lo inyecta Spring (@Component)
 
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
+  }
+
+  // Bean que usa el provider construido en JwtService
+  @Bean
+  public AuthenticationManager authenticationManager() {
+    return new ProviderManager(jwtService.authenticationProvider());
   }
 
   @Bean
