@@ -40,8 +40,8 @@ function authPage() {
     e.preventDefault();
 
     /* ——— CAPTURAR TOKEN DEL CAPTCHA ——— */
-    const recaptchaToken = grecaptcha.getResponse();
-    if (!recaptchaToken) return alert("Marca el reCAPTCHA antes de continuar");
+const recaptchaToken = grecaptcha.getResponse();   // ← Válido con api.js
+if (!recaptchaToken) return alert("Marca el reCAPTCHA antes de continuar");
 
     const body = {
       email:    form.email.value,
