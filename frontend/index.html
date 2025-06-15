@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gym Tracker – Acceso</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gray-100">
+  <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
+    <h1 id="form-title" class="text-2xl font-bold mb-6 text-center">Iniciar sesión</h1>
+    <form id="auth-form" class="space-y-4">
+      <input id="email" type="email" placeholder="Correo electrónico" required class="input" />
+      <input id="password" type="password" placeholder="Contraseña" minlength="8" required class="input" />
+      <input id="confirm" type="password" placeholder="Repite tu contraseña" class="input hidden" />
+      <div class="g-recaptcha" data-sitekey="${RECAPTCHA_SITE_KEY}"></div>
+      <button id="submit-btn" class="btn-primary w-full">Entrar</button>
+    </form>
+    <p class="text-center text-sm mt-4">
+      <a id="toggle-link" href="#" class="text-blue-600 hover:underline">¿No tienes cuenta? Regístrate</a>
+    </p>
+  </div>
+  <script src="assets/js/app.js" type="module"></script>
+</body>
+</html>

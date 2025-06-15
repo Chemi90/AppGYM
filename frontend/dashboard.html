@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gym Tracker</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <nav class="bg-white shadow-md py-4 px-6 flex justify-between items-center">
+    <span class="font-bold">Gym Tracker</span>
+    <button id="logout" class="btn-danger">Salir</button>
+  </nav>
+  <main id="view-container" class="p-6 grid gap-6"></main>
+
+  <!-- Profile template -->
+  <template id="profile-view">
+    <h2 class="view-title">Perfil</h2>
+    <form id="profile-form" class="grid gap-4 max-w-xl">
+      <div class="grid grid-cols-2 gap-4">
+        <input id="firstName" class="input" placeholder="Nombre" required />
+        <input id="lastName" class="input" placeholder="Apellidos" required />
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <input id="age" type="number" class="input" placeholder="Edad" required />
+        <input id="height" type="number" class="input" placeholder="Estatura (cm)" required />
+        <input id="weight" type="number" class="input" placeholder="Peso (kg)" required />
+      </div>
+      <textarea id="measurements" rows="3" class="input" placeholder="Medidas del cuerpo (JSON opcional)"></textarea>
+      <button class="btn-primary w-max">Guardar</button>
+    </form>
+  </template>
+
+  <!-- Machines template -->
+  <template id="machines-view">
+    <h2 class="view-title">Máquinas y pesos</h2>
+    <form id="machine-form" class="flex flex-wrap gap-4 mb-4">
+      <input id="machine-name" class="input flex-1" placeholder="Nombre de la máquina" required />
+      <input id="machine-weight" type="number" class="input w-32" placeholder="Kg" required />
+      <button class="btn-primary">Añadir / Actualizar</button>
+    </form>
+    <table class="w-full bg-white shadow rounded-xl overflow-hidden">
+      <thead>
+        <tr class="bg-gray-50">
+          <th class="th">Máquina</th>
+          <th class="th">Peso (kg)</th>
+          <th class="th"></th>
+        </tr>
+      </thead>
+      <tbody id="machine-table"></tbody>
+    </table>
+  </template>
+
+  <!-- Daily template -->
+  <template id="daily-view">
+    <h2 class="view-title">Registro diario</h2>
+    <form id="daily-form" class="grid gap-4">
+      <input id="entry-date" type="date" class="input w-max" required />
+      <div id="daily-machines" class="grid gap-2"></div>
+      <button class="btn-primary w-max">Guardar registro</button>
+    </form>
+    <hr class="my-6" />
+    <h3 class="font-semibold mb-2">Histórico</h3>
+    <div id="history"></div>
+  </template>
+
+  <script src="assets/js/app.js" type="module"></script>
+</body>
+</html>
