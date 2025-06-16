@@ -174,25 +174,37 @@ async function dashboard(){
     };
   }
 
-  /* ---- Informes (descarga segura) ---------------------------------- */
-  function reports(){
-    qs("#full-pdf").onclick = () => download(`${API_BASE}/api/report/full`,"progreso.pdf");
-    qs("#range-pdf").onclick=()=>{
-      const f=qs("#from").value, t=qs("#to").value;
-      if(!f||!t) return alert("Seleccione ambas fechas");
-      download(`${API_BASE}/api/report/period?from=${f}&to=${t}`,`progreso_${f}_${t}.pdf`);
-    };
-  }
-  async function download(url,filename){
-    const res = await fetch(url,{method:"GET",headers:headers()});   // ←  usa todas las cabeceras
-    if(!res.ok){alert("Error al generar informe");return;}
-    const blob = await res.blob();
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  }
+  /* ---------- Informes (descarga segura) ---------- */
+function reports(){
+  qs("#full-pdf").onclick = () =>
+      download(`${API_BASE}/api/report/full`, "progreso.pdf");
+
+  qs("#range-pdf").onclick = () => {
+    const f = qs("#from").value, t = qs("#to").value;
+    if (!f || !t) return alert("Seleccione ambas fechas");
+    download(`${API_BASE}/api/report/period?from=${f}&to=${t}`,
+             `progreso_${f}_${t}.pdf`);
+  };
+}
+
+/* ↓↓↓ REEMPLAZA POR ESTA VERSIÓN ↓↓↓ */
+async function download(url, filename){
+  /* 1)  encabezado SÓLO con Authorization */
+  const h = new Headers();
+  h.append("Authorization", `Bearer ${localStorage.getItem(TOKEN_KEY)}`);
+
+  /* 2)  la petición */
+  const res = await fetch(url, { headers: h, mode: "cors" });
+  if (!res.ok) { alert("Error al generar informe"); return; }
+
+  /* 3)  convertir a Blob y lanzar descarga */
+  const blob = await res.blob();
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
 
   /* ---- Logout ------------------------------------------------------ */
   qs("#logout").onclick=()=>{
