@@ -1,11 +1,11 @@
 // backend/src/main/java/com/example/AppGYM/service/PdfService.java
 package com.example.AppGYM.service;
 
-import com.example.AppGYM.model.BodyStats;
 import com.example.AppGYM.model.DailyEntry;
 import com.example.AppGYM.model.User;
 import com.example.AppGYM.repository.BodyStatsRepository;
 import com.example.AppGYM.repository.DailyEntryRepository;
+import com.example.AppGYM.repository.MachineRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -16,17 +16,17 @@ import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 @Service @RequiredArgsConstructor
 public class PdfService {
 
-    private final BodyStatsRepository statsRepo;
+    private final BodyStatsRepository  statsRepo;
     private final DailyEntryRepository dailyRepo;
+    private final MachineRepository    machines;
 
     /* ======  PDF completo  ====== */
-    public byte[] buildFull(User u) {
-        return build(u, null, null);
-    }
+    public byte[] buildFull(User u) { return build(u, null, null); }
 
     /* ======  PDF por período  ====== */
     public byte[] buildPeriod(User u, LocalDate from, LocalDate to) {
@@ -66,12 +66,9 @@ public class PdfService {
                 y = drawMeasures(cs, u, y - leading);
 
                 /* =========  HISTÓRICO DIARIO  ========= */
-                y = drawDaily(cs, u, from, to, y - leading);
-
-                /* (podrías seguir añadiendo fotos, gráficas, etc.) */
+                y = drawDaily(cs, pdf, u, from, to, y - leading);
             }
 
-            /* ---- devolver bytes ---- */
             try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
                 pdf.save(bos);
                 return bos.toByteArray();
@@ -88,23 +85,22 @@ public class PdfService {
         cs.setFont(PDType1Font.HELVETICA_BOLD, 14);
         cs.newLineAtOffset(50, y);
         cs.showText("Medidas actuales");
-        cs.endText();
-        y -= 18;
+        cs.endText(); y -= 18;
 
         cs.setFont(PDType1Font.HELVETICA, 11);
-        final String[][] rows = {
-                {"Peso (kg)",      nf(u.getWeightKg())},
-                {"Estatura (cm)",  nf(u.getHeightCm())},
-                {"Cuello",         nf(u.getNeckCm())},
-                {"Pecho",          nf(u.getChestCm())},
-                {"Cintura",        nf(u.getWaistCm())},
-                {"Abd. bajo",      nf(u.getLowerAbsCm())},
-                {"Cadera",         nf(u.getHipCm())},
-                {"Bíceps relax",   nf(u.getBicepsCm())},
-                {"Bíceps flex",    nf(u.getBicepsFlexCm())},
-                {"Antebrazo",      nf(u.getForearmCm())},
-                {"Muslo",          nf(u.getThighCm())},
-                {"Pantorrilla",    nf(u.getCalfCm())}
+        String[][] rows = {
+                {"Peso (kg)",       nf(u.getWeightKg())},
+                {"Estatura (cm)",   nf(u.getHeightCm())},
+                {"Cuello",          nf(u.getNeckCm())},
+                {"Pecho",           nf(u.getChestCm())},
+                {"Cintura",         nf(u.getWaistCm())},
+                {"Abd. bajo",       nf(u.getLowerAbsCm())},
+                {"Cadera",          nf(u.getHipCm())},
+                {"Bíceps relax",    nf(u.getBicepsCm())},
+                {"Bíceps flex",     nf(u.getBicepsFlexCm())},
+                {"Antebrazo",       nf(u.getForearmCm())},
+                {"Muslo",           nf(u.getThighCm())},
+                {"Pantorrilla",     nf(u.getCalfCm())}
         };
         for (String[] r : rows) {
             cs.beginText();
@@ -117,53 +113,56 @@ public class PdfService {
     }
 
     /* ----------------------------------------------------------- */
-    private float drawDaily(PDPageContentStream cs, User u,
-                            LocalDate from, LocalDate to,
-                            float y) throws Exception {
+    private float drawDaily(PDPageContentStream cs, PDDocument pdf, User u,
+                            LocalDate from, LocalDate to, float y) throws Exception {
 
         cs.beginText();
         cs.setFont(PDType1Font.HELVETICA_BOLD, 14);
         cs.newLineAtOffset(50, y);
         cs.showText("Histórico de entrenos");
-        cs.endText();
-        y -= 18;
+        cs.endText(); y -= 18;
 
-        /* tabla cabecera */
+        /* cabecera tabla */
         cs.setFont(PDType1Font.HELVETICA_BOLD, 11);
-        cs.beginText(); cs.newLineAtOffset(60,y); cs.showText("Fecha"); cs.endText();
-        cs.beginText(); cs.newLineAtOffset(150,y);cs.showText("Máquina");cs.endText();
-        cs.beginText(); cs.newLineAtOffset(350,y);cs.showText("Kg/Reps/Series");cs.endText();
-        y -= 14;
-
-        cs.setFont(PDType1Font.HELVETICA, 10);
+        cs.beginText(); cs.newLineAtOffset(60,y);  cs.showText("Fecha");           cs.endText();
+        cs.beginText(); cs.newLineAtOffset(150,y); cs.showText("Máquina");         cs.endText();
+        cs.beginText(); cs.newLineAtOffset(350,y); cs.showText("Kg / Reps x Sets");cs.endText();
+        y -= 14; cs.setFont(PDType1Font.HELVETICA, 10);
 
         List<DailyEntry> list = (from==null||to==null)
                 ? dailyRepo.findByUserId(u.getId())
-                : dailyRepo.findByUserIdAndDateBetweenOrderByDateAsc(u.getId(),from,to)
-                ;
+                : dailyRepo.findByUserIdAndDateBetweenOrderByDateAsc(u.getId(), from, to);
 
         DateTimeFormatter df = DateTimeFormatter.ISO_DATE;
 
         for (DailyEntry e : list) {
-            for (var ex : e.getDetails().values()) {
-                cs.beginText(); cs.newLineAtOffset(60,y); cs.showText(df.format(e.getDate())); cs.endText();
-                cs.beginText(); cs.newLineAtOffset(150,y);cs.showText(ex.getMachine().getName()); cs.endText();
-                cs.beginText(); cs.newLineAtOffset(350,y);
-                cs.showText(ex.getWeightKg()+" kg / "+ex.getReps()+"x"+ex.getSets());
+            for (Map.Entry<Long, DailyEntry.Exercise> ent : e.getDetails().entrySet()) {
+
+                String machineName = machines.findById(ent.getKey())
+                        .map(m -> m.getName())
+                        .orElse("ID " + ent.getKey());
+                var ex = ent.getValue();
+
+                cs.beginText(); cs.newLineAtOffset(60, y);  cs.showText(df.format(e.getDate())); cs.endText();
+                cs.beginText(); cs.newLineAtOffset(150, y); cs.showText(machineName);            cs.endText();
+                cs.beginText(); cs.newLineAtOffset(350, y);
+                cs.showText(ex.getWeightKg() + " kg / " + ex.getReps() + " x " + ex.getSets());
                 cs.endText();
+
                 y -= 12;
-                if(y < 70){          // salto de página sencillo
+                if (y < 70) {                     /* salto de página */
                     cs.close();
                     PDPage newP = new PDPage(PDRectangle.LETTER);
-                    cs.getPdDocument().addPage(newP);
-                    cs = new PDPageContentStream(cs.getPdDocument(), newP);
-                    y = newP.getMediaBox().getHeight() - 50;
+                    pdf.addPage(newP);
+                    cs = new PDPageContentStream(pdf, newP);
+                    y  = newP.getMediaBox().getHeight() - 50;
                 }
             }
         }
+        cs.close();                 /* cierra el último content-stream */
         return y;
     }
 
     /* util */
-    private String nf(Double d){ return d==null? "—" : String.format("%.1f",d); }
+    private String nf(Double d){ return d==null ? "—" : String.format("%.1f", d); }
 }
