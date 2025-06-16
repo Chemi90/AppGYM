@@ -107,11 +107,11 @@ async function dashboard() {
 
     /* rellenar inputs */
     Object.entries({
-      firstName     : data.firstName,
-      lastName      : data.lastName,
-      age           : data.age,
-      height        : data.heightCm,
-      weight        : data.weightKg
+      firstName : data.firstName,
+      lastName  : data.lastName,
+      age       : data.age,
+      height    : data.heightCm,
+      weight    : data.weightKg
     }).forEach(([id, val]) => { if (val !== null) form[id].value = val; });
 
     /* guardar */
@@ -139,18 +139,18 @@ async function dashboard() {
   async function machinesView() {
     const table = qs("#machine-table");
 
-    /* 1· cargar lista y NORMALIZAR --------------------------------------- */
+    /* 1· carga lista y la normaliza (machine.name → name) */
     const raw  = await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json();
     const list = raw.map(um => ({
       id       : um.id,
-      name     : um.machine?.name ?? um.name,   // <- aquí la clave
+      name     : um.machine?.name ?? um.name,
       weightKg : um.weightKg,
       reps     : um.reps,
       sets     : um.sets
     }));
     renderRows(list);
 
-    /* 2· formulario alta / update --------------------------------------- */
+    /* 2· formulario alta / update  */
     const form = qs("#machine-form");
     form.onsubmit = async e => {
       e.preventDefault();
@@ -166,10 +166,10 @@ async function dashboard() {
         body   : JSON.stringify(body)
       });
       form.reset();
-      machinesView();                       // recarga vista
+      machinesView();                       // vuelve a cargar
     };
 
-    /* 3· pinta tabla ----------------------------------------------------- */
+    /* 3· pinta tabla */
     function renderRows(rows) {
       table.innerHTML = "";
       rows.forEach(m => {
@@ -190,12 +190,13 @@ async function dashboard() {
   }
 
   /* -----------------------------------------------------------------------
-     DAILY  (usa máquina.normalizada)
+     DAILY
      ----------------------------------------------------------------------- */
   async function dailyView() {
     const dateInput = qs("#entry-date");
     dateInput.value = new Date().toISOString().slice(0,10);
 
+    /* mismo normalizado que en máquinas */
     const raw  = await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json();
     const machines = raw.map(um => ({
       id       : um.id,
@@ -219,30 +220,31 @@ async function dashboard() {
     const form = qs("#daily-form");
     form.onsubmit = async e => {
       e.preventDefault();
-      const details = {};
+      const exercises = [];
       container.querySelectorAll("div").forEach(row => {
-        const id   = row.querySelector("[data-id]").dataset.id;
-        const kg   = +row.querySelector("[data-id]").value;
-        const reps = +row.querySelector("[data-r='reps']").value;
-        const sets = +row.querySelector("[data-r='sets']").value;
-        details[id] = { weightKg: kg, reps, sets };
+        exercises.push({
+          name     : row.querySelector("span").textContent,
+          weightKg : +row.querySelector("[data-id]").value,
+          reps     : +row.querySelector("[data-r='reps']").value,
+          sets     : +row.querySelector("[data-r='sets']").value
+        });
       });
       await fetch(`${API_BASE}/api/daily`, {
         method : "POST",
         headers: authHeaders(),
-        body   : JSON.stringify({ date: dateInput.value, exercises: Object.values(details) })
+        body   : JSON.stringify({ date: dateInput.value, exercises })
       });
       alert("Registro guardado");
     };
   }
 
   /* -----------------------------------------------------------------------
-     STATS  (⟨Medidas + Fotos⟩)  — implementa cuando lo necesites
+     STATS – implementa aquí lo que necesites
      ----------------------------------------------------------------------- */
   function statsView(){ /* … */ }
 
   /* -----------------------------------------------------------------------
-     REPORTS PDF  (⟨Informes⟩)
+     REPORTS PDF
      ----------------------------------------------------------------------- */
   function reportsView(){
     const fullBtn   = qs("#full-pdf");
