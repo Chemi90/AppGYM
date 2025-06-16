@@ -2,16 +2,17 @@
 package com.example.AppGYM.controller;
 
 import com.example.AppGYM.model.User;
+import com.example.AppGYM.repository.UserRepository;
+import com.example.AppGYM.service.JwtService;
 import com.example.AppGYM.service.PdfService;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 @RestController
 @RequestMapping("/api/report")
@@ -19,25 +20,48 @@ import java.time.LocalDate;
 public class ReportController {
 
     private final PdfService pdf;
+    private final JwtService jwt;
+    private final UserRepository users;
 
+    /* -------- completo -------- */
     @GetMapping("/full")
-    public ResponseEntity<byte[]> full(@AuthenticationPrincipal User u) {
-        byte[] bytes = pdf.buildReport(u,null,null);
+    public ResponseEntity<byte[]> full(@AuthenticationPrincipal User u,
+                                       @RequestParam(required=false) String token){
+
+        u = resolveUser(u, token);
+        byte[] bytes = pdf.buildFull(u);
+
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=progress.pdf")
+                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=progreso.pdf")
                 .body(bytes);
     }
 
+    /* -------- período -------- */
     @GetMapping("/period")
     public ResponseEntity<byte[]> period(@AuthenticationPrincipal User u,
-                                         @RequestParam @DateTimeFormat(iso=DateTimeFormat.ISO.DATE) LocalDate from,
-                                         @RequestParam @DateTimeFormat(iso=DateTimeFormat.ISO.DATE) LocalDate to) {
+                                         @RequestParam String from,
+                                         @RequestParam String to,
+                                         @RequestParam(required=false) String token){
 
-        byte[] bytes = pdf.buildReport(u,from,to);
+        u = resolveUser(u, token);
+        LocalDate f = LocalDate.parse(from);
+        LocalDate t = LocalDate.parse(to);
+
+        byte[] bytes = pdf.buildPeriod(u, f, t);
+
+        String file = String.format("progreso_%s_%s.pdf", from, to);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=progress-"+from+"_"+to+".pdf")
+                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename="+file)
                 .body(bytes);
+    }
+
+    /* -------- helper -------- */
+    private User resolveUser(User u,String token){
+        if(u!=null) return u;
+        if(token==null) throw new RuntimeException("Unauthorized");
+        Claims c = jwt.extractAllClaims(token);
+        return users.findByEmail(c.getSubject()).orElseThrow();
     }
 }
