@@ -1,214 +1,266 @@
-/* assets/js/app.js – versión íntegra (único cambio: download()) */
-
-const API_BASE  = "https://appgym-production-64ac.up.railway.app";
+/* =========================================================================
+   CONFIG
+   ========================================================================= */
+const API_BASE = import.meta?.env?.VITE_API_BASE
+               || "https://appgym-production-64ac.up.railway.app";
 const TOKEN_KEY = "gym_token";
 
-/* ---------- helpers ---------- */
-const headers = () => ({
+/* =========================================================================
+   HELPERS
+   ========================================================================= */
+const qs     = (sel, el = document) => el.querySelector(sel);
+const create = (tag, cls = "") => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
+
+const authHeaders = () => ({
   "Content-Type": "application/json",
-  Authorization : `Bearer ${localStorage.getItem(TOKEN_KEY)}`
+  Authorization  : `Bearer ${localStorage.getItem(TOKEN_KEY)}`
 });
-const qs = (s,e=document)=>e.querySelector(s);
-const create = (t,c="")=>{const x=document.createElement(t);if(c)x.className=c;return x;};
 
-/* ---------- login / register ---------- */
-if(location.pathname.endsWith("/index.html")||location.pathname==="/"){auth();}
-else{dashboard();}
+/* =========================================================================
+   ROUTING
+   ========================================================================= */
+if (location.pathname.endsWith("/index.html") || location.pathname === "/") {
+  authPage();
+} else {
+  dashboard();
+}
 
-function auth(){
-  const f=qs("#auth-form"),c=qs("#confirm"),t=qs("#toggle-link");let mode="login";
-  t.onclick=e=>{e.preventDefault();swap();};
-  function swap(){mode=mode==="login"?"register":"login";
-    c.classList.toggle("hidden",mode==="login");
-    qs("#form-title").textContent=mode==="login"?"Iniciar sesión":"Crear cuenta";
-    qs("#submit-btn").textContent=mode==="login"?"Entrar":"Registrar";}
-  f.onsubmit=async e=>{
+/* =========================================================================
+   AUTH PAGE
+   ========================================================================= */
+function authPage() {
+  const form    = qs("#auth-form");
+  const confirm = qs("#confirm");
+  const toggle  = qs("#toggle-link");
+  let mode = "login";
+
+  toggle.onclick = e => { e.preventDefault(); swap(); };
+
+  function swap() {
+    mode = mode === "login" ? "register" : "login";
+    confirm.classList.toggle("hidden", mode === "login");
+    qs("#form-title").textContent = mode === "login" ? "Iniciar sesión" : "Crear cuenta";
+    qs("#submit-btn").textContent = mode === "login" ? "Entrar" : "Registrar";
+  }
+
+  form.onsubmit = async e => {
     e.preventDefault();
-    const body={email:f.email.value,password:f.password.value};
-    if(mode==="register") body.confirm=f.confirm.value;
-    const r=await fetch(`${API_BASE}/api/auth/${mode}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    if(!r.ok) return alert(await r.text());
-    localStorage.setItem(TOKEN_KEY,(await r.json()).token);
-    location.href="dashboard.html";
+
+    const body = {
+      email   : form.email.value,
+      password: form.password.value
+    };
+    if (mode === "register") body.confirm = form.confirm.value;
+
+    const res = await fetch(`${API_BASE}/api/auth/${mode}`, {
+      method : "POST",
+      headers: { "Content-Type": "application/json" },
+      body   : JSON.stringify(body)
+    });
+
+    if (!res.ok) return alert(await res.text());
+
+    const { token } = await res.json();
+    localStorage.setItem(TOKEN_KEY, token);
+    location.href = "dashboard.html";
   };
 }
 
-/* ---------- dashboard SPA ---------- */
-async function dashboard(){
+/* =========================================================================
+   DASHBOARD
+   ========================================================================= */
+async function dashboard() {
+  if (!localStorage.getItem(TOKEN_KEY)) return location.href = "index.html";
 
-  if(!localStorage.getItem(TOKEN_KEY)) return location.href="index.html";
-
-  const tpl={
-    profile :qs("#profile-view"),
-    stats   :qs("#stats-view"),
-    machines:qs("#machines-view"),
-    daily   :qs("#daily-view"),
-    reports :qs("#reports-view")
+  const container = qs("#view-container");
+  const templates = {
+    profile : qs("#profile-view"),
+    machines: qs("#machines-view"),
+    daily   : qs("#daily-view")
   };
-  const cont=qs("#view-container");
-  window.addEventListener("hashchange",render);render();
 
-  async function render(){
-    const v=location.hash.slice(1)||"profile";
-    cont.innerHTML="";cont.appendChild(tpl[v].content.cloneNode(true));
-    if(v==="profile") profile();   if(v==="stats")   stats();
-    if(v==="machines")machines();  if(v==="daily")  daily();
-    if(v==="reports") reports();
+  window.addEventListener("hashchange", render);
+  render();
+
+  /* -------- render según hash -------- */
+  async function render() {
+    const view = location.hash.slice(1) || "profile";
+    container.innerHTML = "";
+    container.appendChild(templates[view].content.cloneNode(true));
+
+    if (view === "profile")  profileView();
+    if (view === "machines") machinesView();
+    if (view === "daily")    dailyView();
+    reports();                                  // botones PDF disponibles en cualquier vista
   }
 
-  /* ---- Perfil ------------------------------------------------------ */
-  async function profile(){
-    const f=qs("#profile-form");
-    const d=await (await fetch(`${API_BASE}/api/profile`,{headers:headers()})).json();
-    f.firstName.value=d.firstName??""; f.lastName.value=d.lastName??"";
-    f.age.value=d.age??""; f.height.value=d.heightCm??""; f.weight.value=d.weightKg??"";
-    f.onsubmit=async e=>{
+  /* -----------------------------------------------------------------------
+     PROFILE
+     ----------------------------------------------------------------------- */
+  async function profileView() {
+    const res  = await fetch(`${API_BASE}/api/profile`, { headers: authHeaders() });
+    const data = await res.json();
+    const form = qs("#profile-form");
+
+    /* rellenar inputs */
+    Object.entries({
+      firstName     : data.firstName,
+      lastName      : data.lastName,
+      age           : data.age,
+      height        : data.heightCm,
+      weight        : data.weightKg,
+      neck          : data.neckCm,
+      chest         : data.chestCm,
+      waist         : data.waistCm,
+      lowerAbs      : data.lowerAbsCm,
+      hip           : data.hipCm,
+      biceps        : data.bicepsCm,
+      bicepsFlex    : data.bicepsFlexCm,
+      forearm       : data.forearmCm,
+      thigh         : data.thighCm,
+      calf          : data.calfCm
+    }).forEach(([id, val]) => { if (val !== null) form[id].value = val; });
+
+    /* guardar */
+    form.onsubmit = async e => {
       e.preventDefault();
-      const body={
-        firstName:f.firstName.value,lastName:f.lastName.value,
-        age:parseInt(f.age.value),
-        heightCm:parseFloat(f.height.value),
-        weightKg:parseFloat(f.weight.value)
+      const body = {
+        firstName  : form.firstName.value,
+        lastName   : form.lastName.value,
+        age        : +form.age.value,
+        heightCm   : +form.height.value,
+        weightKg   : +form.weight.value,
+        neckCm     : +form.neck.value,
+        chestCm    : +form.chest.value,
+        waistCm    : +form.waist.value,
+        lowerAbsCm : +form.lowerAbs.value,
+        hipCm      : +form.hip.value,
+        bicepsCm   : +form.biceps.value,
+        bicepsFlexCm:+form.bicepsFlex.value,
+        forearmCm  : +form.forearm.value,
+        thighCm    : +form.thigh.value,
+        calfCm     : +form.calf.value
       };
-      await fetch(`${API_BASE}/api/profile`,{method:"PUT",headers:headers(),body:JSON.stringify(body)});
+      await fetch(`${API_BASE}/api/profile`, {
+        method : "PUT",
+        headers: authHeaders(),
+        body   : JSON.stringify(body)
+      });
       alert("Perfil actualizado");
     };
   }
 
-  /* ---- Medidas ----------------------------------------------------- */
-  async function stats(){
-    const f=qs("#stats-form");
-    f["stats-date"].value=new Date().toISOString().slice(0,10);
-    const last=await (await fetch(`${API_BASE}/api/stats/latest`,{headers:headers()})).json()||{};
-    if(last.weightKg!=null) f["stats-weight"].value=last.weightKg;
-    const map={neck:"neck",chest:"chest",waist:"waist",lowerAbs:"lowerAbs",hip:"hip",
-      biceps:"biceps",bicepsFlex:"bicepsFlex",forearm:"forearm",thigh:"thigh",calf:"calf"};
-    Object.entries(map).forEach(([k,id])=>{
-      if(last[k+"Cm"]!=null) f[`stats-${id}`].value=last[k+"Cm"];
-    });
+  /* -----------------------------------------------------------------------
+     MACHINES
+     ----------------------------------------------------------------------- */
+  async function machinesView() {
+    const table = qs("#machine-table");
+    const list  = await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json();
+    renderRows(list);
 
-    f.onsubmit=async e=>{
+    const form = qs("#machine-form");
+    form.onsubmit = async e => {
       e.preventDefault();
-      const dto={
-        date:f["stats-date"].value,
-        weightKg:parseFloat(f["stats-weight"].value),
-        neckCm:parseFloat(f["stats-neck"].value),
-        chestCm:parseFloat(f["stats-chest"].value),
-        waistCm:parseFloat(f["stats-waist"].value),
-        lowerAbsCm:parseFloat(f["stats-lowerAbs"].value),
-        hipCm:parseFloat(f["stats-hip"].value),
-        bicepsCm:parseFloat(f["stats-biceps"].value),
-        bicepsFlexCm:parseFloat(f["stats-bicepsFlex"].value),
-        forearmCm:parseFloat(f["stats-forearm"].value),
-        thighCm:parseFloat(f["stats-thigh"].value),
-        calfCm:parseFloat(f["stats-calf"].value)
+      const body = {
+        name     : form["machine-name"].value,
+        weightKg : +form["machine-weight"].value,
+        reps     : +form["machine-reps"].value,
+        sets     : +form["machine-sets"].value
       };
-      const fd=new FormData();
-      fd.append("data",new Blob([JSON.stringify(dto)],{type:"application/json"}));
-      if(f["stats-front"].files[0]) fd.append("front",f["stats-front"].files[0]);
-      if(f["stats-side"].files[0])  fd.append("side", f["stats-side"].files[0]);
-      if(f["stats-back"].files[0])  fd.append("back", f["stats-back"].files[0]);
-      await fetch(`${API_BASE}/api/stats`,{method:"POST",headers:{Authorization:headers().Authorization},body:fd});
-      alert("Medidas guardadas");
+      await fetch(`${API_BASE}/api/machines`, {
+        method : "POST",
+        headers: authHeaders(),
+        body   : JSON.stringify(body)
+      });
+      form.reset();
+      renderRows(await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json());
     };
-  }
 
-  /* ---- Máquinas ---------------------------------------------------- */
-  async function machines(){
-    const tbl=qs("#machine-table"); render(await list());
-    qs("#machine-form").onsubmit=async e=>{
-      e.preventDefault();
-      const b={
-        name:qs("#machine-name").value,
-        weightKg:parseFloat(qs("#machine-kg").value),
-        reps:parseInt(qs("#machine-reps").value),
-        sets:parseInt(qs("#machine-sets").value)
-      };
-      await fetch(`${API_BASE}/api/machines`,{method:"POST",headers:headers(),body:JSON.stringify(b)});
-      e.target.reset();render(await list());
-    };
-    async function list(){return(await (await fetch(`${API_BASE}/api/machines`,{headers:headers()})).json());}
-    function render(rows){
-      tbl.innerHTML="";
-      rows.forEach(m=>{
-        const tr=create("tr");
-        tr.innerHTML=`<td>${m.machine.name}</td><td>${m.weightKg}</td><td>${m.reps}</td><td>${m.sets}</td>\
-          <td class="text-right"><button class="btn-danger" data-id="${m.id}">×</button></td>`;
-        tbl.appendChild(tr);
-        tr.querySelector("button").onclick=async()=>{
-          await fetch(`${API_BASE}/api/machines/${m.id}`,{method:"DELETE",headers:headers()});
+    function renderRows(rows) {
+      table.innerHTML = "";
+      rows.forEach(m => {
+        const tr = create("tr");
+        tr.innerHTML =
+          `<td>${m.name}</td>\
+           <td>${m.weightKg}</td>\
+           <td>${m.reps}</td>\
+           <td>${m.sets}</td>\
+           <td class="text-right"><button data-id="${m.id}" class="btn-danger">×</button></td>`;
+        table.appendChild(tr);
+        tr.querySelector("button").onclick = async () => {
+          await fetch(`${API_BASE}/api/machines/${m.id}`, { method:"DELETE", headers:authHeaders() });
           tr.remove();
         };
       });
     }
   }
 
-  /* ---- Diario ------------------------------------------------------- */
-  async function daily(){
-    qs("#entry-date").value=new Date().toISOString().slice(0,10);
-    const machines=await (await fetch(`${API_BASE}/api/machines`,{headers:headers()})).json();
-    const cont=qs("#daily-machines"); cont.innerHTML="";
-    machines.forEach(m=>{
-      const d=create("div","flex gap-2");
-      d.innerHTML=`<span class="flex-1">${m.machine.name}</span>\
-        <input class="input w-16" type="number" value="${m.weightKg}" data-id="${m.machine.id}" data-f="kg">\
-        <input class="input w-14" type="number" value="${m.reps}"      data-id="${m.machine.id}" data-f="reps">\
-        <input class="input w-14" type="number" value="${m.sets}"      data-id="${m.machine.id}" data-f="sets">`;
-      cont.appendChild(d);
+  /* -----------------------------------------------------------------------
+     DAILY
+     ----------------------------------------------------------------------- */
+  async function dailyView() {
+    const dateInput = qs("#entry-date");
+    dateInput.value = new Date().toISOString().slice(0,10);
+
+    const machines  = await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json();
+    const container = qs("#daily-machines");
+    container.innerHTML = "";
+    machines.forEach(m => {
+      const div = create("div","flex gap-2");
+      div.innerHTML = `<span class="flex-1">${m.name}</span>\
+        <input type="number" class="input w-24" value="${m.weightKg}" data-id="${m.id}">\
+        <input type="number" class="input w-16" value="${m.reps}"      data-r="reps">\
+        <input type="number" class="input w-16" value="${m.sets}"      data-r="sets">`;
+      container.appendChild(div);
     });
-    qs("#daily-form").onsubmit=async e=>{
+
+    const form = qs("#daily-form");
+    form.onsubmit = async e => {
       e.preventDefault();
-      const map={};
-      cont.querySelectorAll("input").forEach(i=>{
-        const o=map[i.dataset.id]||{};o[i.dataset.f]=parseFloat(i.value);map[i.dataset.id]=o;
+      const details = {};
+      container.querySelectorAll("div").forEach(row => {
+        const id   = row.querySelector("[data-id]").dataset.id;
+        const kg   = +row.querySelector("[data-id]").value;
+        const reps = +row.querySelector("[data-r='reps']").value;
+        const sets = +row.querySelector("[data-r='sets']").value;
+        details[id] = { weightKg: kg, reps, sets };
       });
-      const exercises=Object.entries(map).map(([id,o])=>({
-        name:machines.find(x=>x.machine.id==id).machine.name,
-        weightKg:o.kg,reps:o.reps,sets:o.sets
-      }));
-      await fetch(`${API_BASE}/api/daily`,{
-        method:"POST",headers:headers(),
-        body:JSON.stringify({date:qs("#entry-date").value,exercises})
+      await fetch(`${API_BASE}/api/daily`, {
+        method : "POST",
+        headers: authHeaders(),
+        body   : JSON.stringify({ date: dateInput.value, exercises: Object.values(details) })
       });
       alert("Registro guardado");
     };
   }
 
-  /* ---------- Informes (descarga segura) ---------- */
-function reports(){
-  qs("#full-pdf").onclick = () =>
+  /* -----------------------------------------------------------------------
+     REPORTS (botones de descarga)
+     ----------------------------------------------------------------------- */
+  function reports(){
+    const fullBtn   = qs("#full-pdf");
+    const rangeBtn  = qs("#range-pdf");
+    if (fullBtn) fullBtn.onclick = () =>
       download(`${API_BASE}/api/report/full`, "progreso.pdf");
 
-  qs("#range-pdf").onclick = () => {
-    const f = qs("#from").value, t = qs("#to").value;
-    if (!f || !t) return alert("Seleccione ambas fechas");
-    download(`${API_BASE}/api/report/period?from=${f}&to=${t}`,
-             `progreso_${f}_${t}.pdf`);
-  };
-}
+    if (rangeBtn) rangeBtn.onclick = () => {
+      const f = qs("#from").value, t = qs("#to").value;
+      if (!f || !t) return alert("Seleccione ambas fechas");
+      download(`${API_BASE}/api/report/period?from=${f}&to=${t}`,
+               `progreso_${f}_${t}.pdf`);
+    };
+  }
 
-/* ↓↓↓ REEMPLAZA POR ESTA VERSIÓN ↓↓↓ */
-async function download(url, filename){
-  /* 1)  encabezado SÓLO con Authorization */
-  const h = new Headers();
-  h.append("Authorization", `Bearer ${localStorage.getItem(TOKEN_KEY)}`);
+  /* ---------- descarga con token en query-string ---------- */
+  function download(url, filename){
+    const token = localStorage.getItem(TOKEN_KEY);
+    const href  = `${url}${url.includes("?")?"&":"?"}token=${token}`;
+    window.open(href, "_blank");
+  }
 
-  /* 2)  la petición */
-  const res = await fetch(url, { headers: h, mode: "cors" });
-  if (!res.ok) { alert("Error al generar informe"); return; }
-
-  /* 3)  convertir a Blob y lanzar descarga */
-  const blob = await res.blob();
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
-}
-
-  /* ---- Logout ------------------------------------------------------ */
-  qs("#logout").onclick=()=>{
+  /* ---------- logout ---------- */
+  qs("#logout").onclick = () => {
     localStorage.removeItem(TOKEN_KEY);
-    location.href="index.html";
+    location.href = "index.html";
   };
 }
