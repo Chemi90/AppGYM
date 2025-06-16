@@ -7,10 +7,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -22,28 +24,39 @@ public class SecurityConfig {
 
   private final JwtFilter jwtFilter;
   private final UserDetailsService users;
-  private final PasswordEncoder passwordEnc;
-  private final CorsConfig cors; /* inyectamos el bean */
+
+  /* ===== Beans ===== */
+  @Bean public PasswordEncoder passwordEncoder(){ return new BCryptPasswordEncoder(); }
 
   @Bean
-  public AuthenticationManager authenticationManager() {
+  public AuthenticationManager authManager(){
     DaoAuthenticationProvider p = new DaoAuthenticationProvider();
     p.setUserDetailsService(users);
-    p.setPasswordEncoder(passwordEnc);
+    p.setPasswordEncoder(passwordEncoder());
     return p::authenticate;
   }
 
+  /* ===== Cadena de seguridad ===== */
   @Bean
-  public SecurityFilterChain filter(HttpSecurity http) throws Exception {
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
     http
-            .cors(c -> c.configurationSource(cors.corsConfigurationSource()))
             .csrf(cs -> cs.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+            /* ——— Autorizaciones ——— */
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/**","/actuator/health").permitAll()
-                    .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
-                    .anyRequest().authenticated())
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                    .requestMatchers("/api/auth/**", "/actuator/health").permitAll()
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                    /* NUEVO: la ruta de reportes sólo necesita estar autenticado */
+                    .requestMatchers("/api/report/**").authenticated()
+
+                    .anyRequest().authenticated()
+            )
+
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .cors(Customizer.withDefaults());
 
     return http.build();
   }
