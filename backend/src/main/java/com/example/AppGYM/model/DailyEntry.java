@@ -1,30 +1,36 @@
-// backend/src/main/java/com/example/AppGYM/model/DailyEntry.java
 package com.example.AppGYM.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 
-@Entity @Data
+@Entity
+@Data
 public class DailyEntry {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue
     private Long id;
 
-    @ManyToOne @JoinColumn(nullable=false)
+    @ManyToOne(optional = false)
     private User user;
 
     private LocalDate date;
 
-    /** máquinaId -> peso/reps/sets */
-    @ElementCollection
-    private Map<Long,Exercise> details;
+    /*  clave = machineId  |  valor = Exercise embebido  */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "daily_exercise")
+    @MapKeyColumn(name = "machine_id")
+    private Map<Long, Exercise> details = new HashMap<>();
 
-    @Embeddable @Data
+    /* ───────── sub-documento embebido ───────── */
+    @Embeddable @Data @EqualsAndHashCode(of = "name")
     public static class Exercise {
-        private Double weightKg;
+        private String  name;       // ← NUEVO (máquina “Prensa piernas” …)
+        private Double  weightKg;
         private Integer reps;
         private Integer sets;
     }

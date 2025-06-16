@@ -1,8 +1,6 @@
-// backend/src/main/java/com/example/AppGYM/controller/DailyEntryController.java
 package com.example.AppGYM.controller;
 
 import com.example.AppGYM.dto.DailyDto;
-import com.example.AppGYM.dto.MachineEntryDto;
 import com.example.AppGYM.model.DailyEntry;
 import com.example.AppGYM.model.User;
 import com.example.AppGYM.repository.DailyEntryRepository;
@@ -24,15 +22,19 @@ import java.util.stream.Collectors;
 public class DailyEntryController {
 
     private final DailyEntryRepository repo;
-    private final MachineRepository machines;
+    private final MachineRepository    machines;
 
+    /* ───────── rango ───────── */
     @GetMapping
     public List<DailyEntry> range(@AuthenticationPrincipal User u,
-                                  @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-                                  @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return repo.findByUserIdAndDateBetweenOrderByDateAsc(u.getId(),from,to);
+                                  @RequestParam
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+                                  @RequestParam
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return repo.findByUserIdAndDateBetweenOrderByDateAsc(u.getId(), from, to);
     }
 
+    /* ───────── alta / update ───────── */
     @PostMapping @Transactional
     public void save(@AuthenticationPrincipal User u,
                      @RequestBody DailyDto dto) {
@@ -40,20 +42,24 @@ public class DailyEntryController {
         DailyEntry e = repo.findByUserIdAndDate(u.getId(), dto.getDate())
                 .orElseGet(() -> {
                     DailyEntry x = new DailyEntry();
-                    x.setUser(u); x.setDate(dto.getDate());
+                    x.setUser(u);
+                    x.setDate(dto.getDate());
                     return x;
                 });
 
-        Map<Long,DailyEntry.Exercise> map = dto.getExercises().stream().collect(Collectors.toMap(
-                ex -> machines.findByName(ex.getName()).orElseThrow().getId(),
-                ex -> {
-                    DailyEntry.Exercise exo = new DailyEntry.Exercise();
-                    exo.setWeightKg(ex.getWeightKg());
-                    exo.setReps(ex.getReps());
-                    exo.setSets(ex.getSets());
-                    return exo;
-                }
-        ));
+        /* convierte DTO → mapa {machineId → Exercise} */
+        Map<Long, DailyEntry.Exercise> map = dto.getExercises().stream()
+                .collect(Collectors.toMap(
+                        ex -> machines.findByName(ex.getName()).orElseThrow().getId(),
+                        ex -> {
+                            DailyEntry.Exercise x = new DailyEntry.Exercise();
+                            x.setName(ex.getName());             // ← RELLENA nombre
+                            x.setWeightKg(ex.getWeightKg());
+                            x.setReps(ex.getReps());
+                            x.setSets(ex.getSets());
+                            return x;
+                        }
+                ));
 
         e.setDetails(map);
         repo.save(e);

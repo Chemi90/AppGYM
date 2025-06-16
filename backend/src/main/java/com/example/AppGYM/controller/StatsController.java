@@ -1,67 +1,85 @@
-// backend/src/main/java/com/example/AppGYM/controller/StatsController.java
 package com.example.AppGYM.controller;
 
 import com.example.AppGYM.dto.BodyStatsDto;
 import com.example.AppGYM.model.BodyStats;
+import com.example.AppGYM.model.ProgressPhoto;
 import com.example.AppGYM.model.User;
 import com.example.AppGYM.repository.BodyStatsRepository;
-import com.example.AppGYM.service.StorageService;
+import com.example.AppGYM.repository.ProgressPhotoRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/stats")
 @RequiredArgsConstructor
 public class StatsController {
 
-    private final BodyStatsRepository repo;
-    private final StorageService storage;
+    private final BodyStatsRepository statsRepo;
+    private final ProgressPhotoRepository photoRepo;
 
-    @GetMapping("/latest")
-    public BodyStatsDto latest(@AuthenticationPrincipal User u){
-        return repo.findTopByUserIdOrderByDateDesc(u.getId())
-                .map(this::toDto)
+    /* ────── histórico completo ────── */
+    @GetMapping
+    public List<BodyStats> list(@AuthenticationPrincipal User u) {
+        return statsRepo.findByUserIdOrderByDateAsc(u.getId());
+    }
+
+    /* ────── última medición ────── */
+    @GetMapping("/last")
+    public BodyStats last(@AuthenticationPrincipal User u) {
+        return statsRepo.findTopByUserIdOrderByDateDesc(u.getId())
                 .orElse(null);
     }
 
+    /* ────── guardar medición + fotos ────── */
     @PostMapping @Transactional
     public void save(@AuthenticationPrincipal User u,
-                     @RequestPart("data") BodyStatsDto dto,
-                     @RequestPart(value="front",required=false) MultipartFile front,
-                     @RequestPart(value="side", required=false) MultipartFile side,
-                     @RequestPart(value="back", required=false) MultipartFile back){
+                     @ModelAttribute BodyStatsDto dto,
+                     @RequestPart(required = false) MultipartFile front,
+                     @RequestPart(required = false) MultipartFile side,
+                     @RequestPart(required = false) MultipartFile back) {
 
-        BodyStats bs = new BodyStats();
-        bs.setUser(u);
-        bs.setDate(dto.getDate());
-        bs.setWeightKg(dto.getWeightKg());
-        bs.setNeckCm(dto.getNeckCm()); bs.setChestCm(dto.getChestCm());
-        bs.setWaistCm(dto.getWaistCm()); bs.setLowerAbsCm(dto.getLowerAbsCm());
-        bs.setHipCm(dto.getHipCm());
-        bs.setBicepsCm(dto.getBicepsCm()); bs.setBicepsFlexCm(dto.getBicepsFlexCm());
-        bs.setForearmCm(dto.getForearmCm()); bs.setThighCm(dto.getThighCm());
-        bs.setCalfCm(dto.getCalfCm());
+        /* ---- medidas ---- */
+        BodyStats s = new BodyStats();
+        s.setUser(u);
+        s.setDate(dto.date() == null ? LocalDate.now() : dto.date());
+        s.setWeightKg(dto.weightKg());
+        s.setNeckCm(dto.neckCm());
+        s.setChestCm(dto.chestCm());
+        s.setWaistCm(dto.waistCm());
+        s.setLowerAbsCm(dto.lowerAbsCm());
+        s.setHipCm(dto.hipCm());
+        s.setBicepsCm(dto.bicepsCm());
+        s.setBicepsFlexCm(dto.bicepsFlexCm());
+        s.setForearmCm(dto.forearmCm());
+        s.setThighCm(dto.thighCm());
+        s.setCalfCm(dto.calfCm());
+        statsRepo.save(s);
 
-        if(front!=null) bs.setFrontImgUrl(storage.save(front));
-        if(side !=null) bs.setSideImgUrl (storage.save(side));
-        if(back !=null) bs.setBackImgUrl (storage.save(back));
-
-        repo.save(bs);
+        /* ---- fotos opcionales ---- */
+        uploadPhoto(u, s.getDate(), ProgressPhoto.Type.FRONT, front);
+        uploadPhoto(u, s.getDate(), ProgressPhoto.Type.SIDE , side );
+        uploadPhoto(u, s.getDate(), ProgressPhoto.Type.BACK , back );
     }
 
-    /* ---------------- */
-    private BodyStatsDto toDto(BodyStats b){
-        BodyStatsDto d=new BodyStatsDto();
-        d.setDate(b.getDate()); d.setWeightKg(b.getWeightKg());
-        d.setNeckCm(b.getNeckCm()); d.setChestCm(b.getChestCm());
-        d.setWaistCm(b.getWaistCm()); d.setLowerAbsCm(b.getLowerAbsCm());
-        d.setHipCm(b.getHipCm());
-        d.setBicepsCm(b.getBicepsCm()); d.setBicepsFlexCm(b.getBicepsFlexCm());
-        d.setForearmCm(b.getForearmCm()); d.setThighCm(b.getThighCm()); d.setCalfCm(b.getCalfCm());
-        d.setFrontImgUrl(b.getFrontImgUrl()); d.setSideImgUrl(b.getSideImgUrl()); d.setBackImgUrl(b.getBackImgUrl());
-        return d;
+    /* helper */
+    private void uploadPhoto(User u, LocalDate date,
+                             ProgressPhoto.Type type,
+                             MultipartFile file) {
+        if (file == null || file.isEmpty()) return;
+
+        // En producción subirías a S3 / Cloudinary.  Aquí guardamos un
+        // objeto de referencia solamente (url=fake).
+        ProgressPhoto p = new ProgressPhoto();
+        p.setUser(u);
+        p.setDate(date);
+        p.setType(type);
+        p.setUrl("uploaded://" + file.getOriginalFilename());
+        photoRepo.save(p);
     }
 }
