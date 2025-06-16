@@ -25,7 +25,7 @@ public class SecurityConfig {
   private final JwtFilter jwtFilter;
   private final UserDetailsService users;
 
-  /* ===== Beans ===== */
+  /* ---------- beans ---------- */
   @Bean public PasswordEncoder passwordEncoder(){ return new BCryptPasswordEncoder(); }
 
   @Bean
@@ -36,22 +36,23 @@ public class SecurityConfig {
     return p::authenticate;
   }
 
-  /* ===== Cadena de seguridad ===== */
+  /* ---------- cadena ---------- */
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
     http
             .csrf(cs -> cs.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-            /* ——— Autorizaciones ——— */
             .authorizeHttpRequests(auth -> auth
+
+                    /* públicos -------------------------------------------------- */
                     .requestMatchers("/api/auth/**", "/actuator/health").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                    /* NUEVO: la ruta de reportes sólo necesita estar autenticado */
-                    .requestMatchers("/api/report/**").authenticated()
+                    /* >>>  INFORMES: se validan dentro del controlador  <<< */
+                    .requestMatchers("/api/report/**").permitAll()
 
+                    /* resto protegido ------------------------------------------ */
                     .anyRequest().authenticated()
             )
 
