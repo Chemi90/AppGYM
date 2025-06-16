@@ -1,3 +1,4 @@
+// backend/src/main/java/com/example/AppGYM/repository/BodyStatsRepository.java
 package com.example.AppGYM.repository;
 
 import com.example.AppGYM.model.BodyStats;
@@ -7,15 +8,14 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface BodyStatsRepository extends JpaRepository<BodyStats, Long> {
+public interface BodyStatsRepository extends JpaRepository<BodyStats,Long> {
 
-    /* último registro (para “Medidas actuales”) */
+    /* Último registro (= medidas actuales) */
     Optional<BodyStats> findTopByUserIdOrderByDateDesc(Long userId);
 
-    /* histórico completo, ascendente por fecha */
+    /* Histórico completo o entre fechas */
     List<BodyStats> findByUserIdOrderByDateAsc(Long userId);
-
-    /* histórico acotado por fecha */
-    List<BodyStats> findByUserIdAndDateBetweenOrderByDateAsc(
-            Long userId, LocalDate from, LocalDate to);
+    List<BodyStats> findByUserIdAndDateBetweenOrderByDateAsc(Long userId,
+                                                             LocalDate from,
+                                                             LocalDate to);
 }
