@@ -1,154 +1,143 @@
-/* --------- Config --------- */
+// frontend/assets/js/app.js  (versión completa con fix de peso y nueva vista stats)
 const API_BASE  = "https://appgym-production-64ac.up.railway.app";
 const TOKEN_KEY = "gym_token";
 
-/* --------- Helpers --------- */
+/* helpers */
 const headers = () => ({
   "Content-Type": "application/json",
   Authorization  : `Bearer ${localStorage.getItem(TOKEN_KEY)}`
 });
-const qs     = (sel, el = document) => el.querySelector(sel);
-const create = (tag, cls = "") => { const e=document.createElement(tag); if(cls) e.className=cls; return e; };
+const qs     = (s,e=document)=>e.querySelector(s);
+const create = (t,c="")=>{const x=document.createElement(t);if(c)x.className=c;return x;};
 
-/* ----------  Auth page ---------- */
-if (location.pathname.endsWith("/index.html") || location.pathname === "/") {
-  authPage();
-} else {
-  dashboard();
-}
+/* login / register */
+if(location.pathname.endsWith("/index.html") || location.pathname==="/"){authPage();}
+else{dashboard();}
 
-function authPage() {
-  const form = qs("#auth-form"), confirm = qs("#confirm"), toggle = qs("#toggle-link");
-  let mode = "login";
-
-  toggle.onclick = e => { e.preventDefault(); swap(); };
-
+function authPage(){
+  const f=qs("#auth-form"), c=qs("#confirm"), t=qs("#toggle-link");
+  let mode="login";
+  t.onclick=e=>{e.preventDefault();swap();};
   function swap(){
-    mode = mode === "login" ? "register" : "login";
-    confirm.classList.toggle("hidden", mode==="login");
-    qs("#form-title").textContent = mode==="login" ? "Iniciar sesión" : "Crear cuenta";
-    qs("#submit-btn").textContent = mode==="login" ? "Entrar"          : "Registrar";
+    mode=mode==="login"?"register":"login";
+    c.classList.toggle("hidden",mode==="login");
+    qs("#form-title").textContent=mode==="login"?"Iniciar sesión":"Crear cuenta";
+    qs("#submit-btn").textContent=mode==="login"?"Entrar":"Registrar";
   }
-
-  form.onsubmit = async e => {
+  f.onsubmit=async e=>{
     e.preventDefault();
-    const body = {
-      email   : form.email.value,
-      password: form.password.value
-    };
-    if(mode==="register") body.confirm = form.confirm.value;
-
-    const res = await fetch(`${API_BASE}/api/auth/${mode}`, {
-      method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(body)
-    });
-    if(!res.ok) return alert(await res.text());
-
-    const { token } = await res.json();
-    localStorage.setItem(TOKEN_KEY, token);
-    location.href = "dashboard.html";
+    const body={email:f.email.value,password:f.password.value};
+    if(mode==="register") body.confirm=f.confirm.value;
+    const r=await fetch(`${API_BASE}/api/auth/${mode}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if(!r.ok) return alert(await r.text());
+    localStorage.setItem(TOKEN_KEY,(await r.json()).token);
+    location.href="dashboard.html";
   };
 }
 
-/* ----------  Dashboard ---------- */
+/* dashboard */
 async function dashboard(){
-
   if(!localStorage.getItem(TOKEN_KEY)) return location.href="index.html";
 
   const templates={
-    profile : qs("#profile-view"),
-    machines: qs("#machines-view"),
-    daily   : qs("#daily-view"),
-    reports : qs("#reports-view")
+    profile :qs("#profile-view"),
+    stats   :qs("#stats-view"),
+    machines:qs("#machines-view"),
+    daily   :qs("#daily-view"),
+    reports :qs("#reports-view")
   };
-  const container = qs("#view-container");
-  window.addEventListener("hashchange", render);
-  render();
+  const cont=qs("#view-container");
+  window.addEventListener("hashchange",render);render();
 
-  /* ---- render view ---- */
   async function render(){
-    const view = location.hash.slice(1) || "profile";
-    container.innerHTML="";
-    container.appendChild(templates[view].content.cloneNode(true));
-
-    switch(view){
-      case "profile": await profileView(); break;
-      case "machines":machinesView(); break;
-      case "daily":   dailyView();   break;
-      case "reports": reportsView(); break;
-    }
+    const v=location.hash.slice(1)||"profile";
+    cont.innerHTML="";cont.appendChild(templates[v].content.cloneNode(true));
+    if(v==="profile") profileView();
+    if(v==="stats")   statsView();
+    if(v==="machines")machinesView();
+    if(v==="daily")   dailyView();
+    if(v==="reports") reportsView();
   }
 
-  /* ---- perfil ---- */
+  /* --- perfil --- */
   async function profileView(){
-    const res  = await fetch(`${API_BASE}/api/profile`, { headers: headers() });
-    const data = await res.json();
+    const res=await fetch(`${API_BASE}/api/profile`,{headers:headers()});
+    const d = await res.json();
     const f = qs("#profile-form");
-
-    // rellenar
-    ["firstName","lastName","age","height","weight","neck","chest","waist",
-     "lowerAbs","hip","biceps","bicepsFlex","forearm","thigh","calf"].forEach(id=>{
-      if(f[id]) f[id].value = data[id+"Cm"] ?? data[id] ?? "";
-    });
-    // fotos preview (opcional)
-
-    f.onsubmit = async e=>{
+    ["firstName","lastName","age","height"].forEach(id=>f[id].value=d[id]??"");
+    f.weight.value = d.weightKg ?? "";
+    f.onsubmit=async e=>{
       e.preventDefault();
       const body={
         firstName:f.firstName.value,lastName:f.lastName.value,age:f.age.value,
-        heightCm:f.height.value,     weightKg:f.weight.value,
-        neckCm:f.neck.value,         chestCm:f.chest.value,  waistCm:f.waist.value,
-        lowerAbsCm:f.lowerAbs.value, hipCm:f.hip.value,
-        bicepsCm:f.biceps.value,     bicepsFlexCm:f.bicepsFlex.value,
-        forearmCm:f.forearm.value,   thighCm:f.thigh.value,  calfCm:f.calf.value
+        heightCm:parseFloat(f.height.value),weightKg:parseFloat(f.weight.value)
       };
-      await fetch(`${API_BASE}/api/profile`,{
-        method:"PUT",headers:headers(),body:JSON.stringify(body)});
-      // fotos
-      await uploadPhoto("FRONT",f["photo-front"].files[0]);
-      await uploadPhoto("SIDE", f["photo-side"].files[0]);
-      await uploadPhoto("BACK", f["photo-back"].files[0]);
+      await fetch(`${API_BASE}/api/profile`,{method:"PUT",headers:headers(),body:JSON.stringify(body)});
       alert("Perfil actualizado");
     };
-
-    async function uploadPhoto(type,file){
-      if(!file) return;
-      const fd=new FormData();
-      fd.append("type",type); fd.append("file",file);
-      await fetch(`${API_BASE}/api/photos`,{method:"POST",headers:{ Authorization: headers().Authorization },body:fd});
-    }
   }
 
-  /* ---- máquinas ---- */
-  async function machinesView(){
-    const table=qs("#machine-table");
-    renderRows(await fetchList());
-
-    const form=qs("#machine-form");
-    form.onsubmit = async e=>{
+  /* --- medidas + fotos --- */
+  async function statsView(){
+    const f=qs("#stats-form");
+    f["stats-date"].value=new Date().toISOString().slice(0,10);
+    const last=await (await fetch(`${API_BASE}/api/stats/latest`,{headers:headers()})).json()||{};
+    if(last.weightKg!=null)        f["stats-weight"].value=last.weightKg;
+    const map={neck:"neck",chest:"chest",waist:"waist",lowerAbs:"lowerAbs",hip:"hip",
+      biceps:"biceps",bicepsFlex:"bicepsFlex",forearm:"forearm",thigh:"thigh",calf:"calf"};
+    Object.entries(map).forEach(([k,id])=>{
+      if(last[k+"Cm"]!=null) f[`stats-${id}`].value=last[k+"Cm"];
+    });
+    f.onsubmit=async e=>{
       e.preventDefault();
-      const body={
-        name     :form["machine-name"].value,
-        weightKg :form["machine-kg"].value,
-        reps     :form["machine-reps"].value,
-        sets     :form["machine-sets"].value
+      const dto={
+        date:f["stats-date"].value,
+        weightKg:parseFloat(f["stats-weight"].value),
+        neckCm:parseFloat(f["stats-neck"].value),
+        chestCm:parseFloat(f["stats-chest"].value),
+        waistCm:parseFloat(f["stats-waist"].value),
+        lowerAbsCm:parseFloat(f["stats-lowerAbs"].value),
+        hipCm:parseFloat(f["stats-hip"].value),
+        bicepsCm:parseFloat(f["stats-biceps"].value),
+        bicepsFlexCm:parseFloat(f["stats-bicepsFlex"].value),
+        forearmCm:parseFloat(f["stats-forearm"].value),
+        thighCm:parseFloat(f["stats-thigh"].value),
+        calfCm:parseFloat(f["stats-calf"].value)
       };
-      await fetch(`${API_BASE}/api/machines`,{method:"POST",headers:headers(),body:JSON.stringify(body)});
-      form.reset();
-      renderRows(await fetchList());
+      const fd=new FormData();
+      fd.append("data",new Blob([JSON.stringify(dto)],{type:"application/json"}));
+      if(f["stats-front"].files[0]) fd.append("front",f["stats-front"].files[0]);
+      if(f["stats-side"].files[0])  fd.append("side", f["stats-side"].files[0]);
+      if(f["stats-back"].files[0])  fd.append("back", f["stats-back"].files[0]);
+      await fetch(`${API_BASE}/api/stats`,{method:"POST",headers:{Authorization:headers().Authorization},body:fd});
+      alert("Medidas guardadas");
     };
+  }
 
-    async function fetchList(){
-      return (await (await fetch(`${API_BASE}/api/machines`,{headers:headers()})).json());
-    }
-    function renderRows(rows){
-      table.innerHTML="";
+  /* --- máquinas --- */
+  async function machinesView(){
+    const tbl=qs("#machine-table");
+    render(await get());
+    qs("#machine-form").onsubmit=async e=>{
+      e.preventDefault();
+      const b={
+        name:qs("#machine-name").value,
+        weightKg:parseFloat(qs("#machine-kg").value),
+        reps:parseInt(qs("#machine-reps").value),
+        sets:parseInt(qs("#machine-sets").value)
+      };
+      await fetch(`${API_BASE}/api/machines`,{method:"POST",headers:headers(),body:JSON.stringify(b)});
+      e.target.reset();render(await get());
+    };
+    async function get(){return(await (await fetch(`${API_BASE}/api/machines`,{headers:headers()})).json());}
+    function render(rows){
+      tbl.innerHTML="";
       rows.forEach(m=>{
         const tr=create("tr");
-        tr.innerHTML=
-          `<td>${m.machine.name}</td><td>${m.weightKg}</td><td>${m.reps}</td><td>${m.sets}</td>\
-           <td class="text-right"><button class="btn-danger" data-id="${m.id}">×</button></td>`;
-        table.appendChild(tr);
-        tr.querySelector("button").onclick = async()=>{
+        tr.innerHTML=`<td>${m.machine.name}</td><td>${m.weightKg}</td><td>${m.reps}</td><td>${m.sets}</td>\
+          <td class="text-right"><button class="btn-danger" data-id="${m.id}">×</button></td>`;
+        tbl.appendChild(tr);
+        tr.querySelector("button").onclick=async()=>{
           await fetch(`${API_BASE}/api/machines/${m.id}`,{method:"DELETE",headers:headers()});
           tr.remove();
         };
@@ -156,64 +145,46 @@ async function dashboard(){
     }
   }
 
-  /* ---- diario ---- */
+  /* --- diario --- */
   async function dailyView(){
-    const dateInput=qs("#entry-date");
-    dateInput.value=new Date().toISOString().slice(0,10);
-
+    qs("#entry-date").value=new Date().toISOString().slice(0,10);
     const machines=await (await fetch(`${API_BASE}/api/machines`,{headers:headers()})).json();
-    const container=qs("#daily-machines");
-    container.innerHTML="";
+    const cont=qs("#daily-machines");cont.innerHTML="";
     machines.forEach(m=>{
       const div=create("div","flex gap-2");
-      div.innerHTML=
-        `<span class="flex-1">${m.machine.name}</span>\
-         <input type="number" class="input" style="width:6rem" value="${m.weightKg}" data-id="${m.machine.id}" data-field="kg">\
-         <input type="number" class="input" style="width:5rem" value="${m.reps||10}" data-id="${m.machine.id}" data-field="reps">\
-         <input type="number" class="input" style="width:5rem" value="${m.sets||3}"  data-id="${m.machine.id}" data-field="sets">`;
-      container.appendChild(div);
+      div.innerHTML=`<span class="flex-1">${m.machine.name}</span>\
+        <input type="number" class="input" style="width:6rem" value="${m.weightKg}" data-id="${m.machine.id}" data-f="kg">\
+        <input type="number" class="input" style="width:5rem" value="${m.reps}" data-id="${m.machine.id}" data-f="reps">\
+        <input type="number" class="input" style="width:5rem" value="${m.sets}" data-id="${m.machine.id}" data-f="sets">`;
+      cont.appendChild(div);
     });
-
-    qs("#daily-form").onsubmit = async e=>{
+    qs("#daily-form").onsubmit=async e=>{
       e.preventDefault();
-      const details=[];
-      container.querySelectorAll("input").forEach(inp=>{
-        const id=inp.dataset.id;
-        let obj = details.find(o=>o.id===id);
-        if(!obj){ obj={id,kg:null,reps:null,sets:null}; details.push(obj);}
-        if(inp.dataset.field==="kg")   obj.kg   = parseFloat(inp.value);
-        if(inp.dataset.field==="reps") obj.reps = parseInt(inp.value);
-        if(inp.dataset.field==="sets") obj.sets = parseInt(inp.value);
+      const map={};cont.querySelectorAll("input").forEach(i=>{
+        const o=map[i.dataset.id]||{};o[i.dataset.f]=parseFloat(i.value);map[i.dataset.id]=o;
       });
-
-      const exercises = details.map(o=>({
-        name: machines.find(x=>x.machine.id==o.id).machine.name,
-        weightKg:o.kg, reps:o.reps, sets:o.sets
-      }));
-
+      const exercises=Object.entries(map).map(([id,o])=>{
+        return{
+          name:machines.find(x=>x.machine.id==id).machine.name,
+          weightKg:o.kg,reps:o.reps,sets:o.sets
+        };
+      });
       await fetch(`${API_BASE}/api/daily`,{
-        method:"POST",headers:headers(),
-        body:JSON.stringify({ date:dateInput.value, exercises })
+        method:"POST",headers:headers(),body:JSON.stringify({date:qs("#entry-date").value,exercises})
       });
       alert("Registro guardado");
     };
   }
 
-  /* ---- informes ---- */
+  /* --- informes --- */
   function reportsView(){
-    qs("#full-pdf").onclick = () =>
-      window.open(`${API_BASE}/api/report/full`);
-
-    qs("#range-pdf").onclick = () =>{
-      const f=qs("#from").value, t=qs("#to").value;
+    qs("#full-pdf").onclick = ()=>window.open(`${API_BASE}/api/report/full`);
+    qs("#range-pdf").onclick=()=>{
+      const f=qs("#from").value,t=qs("#to").value;
       if(!f||!t) return alert("Seleccione ambas fechas");
       window.open(`${API_BASE}/api/report/period?from=${f}&to=${t}`);
     };
   }
 
-  /* logout */
-  qs("#logout").onclick = ()=>{
-    localStorage.removeItem(TOKEN_KEY);
-    location.href="index.html";
-  };
+  qs("#logout").onclick=()=>{localStorage.removeItem(TOKEN_KEY);location.href="index.html";};
 }

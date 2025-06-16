@@ -28,7 +28,7 @@ public class ProfileController {
         u.setLastName(dto.lastName);
         u.setAge(dto.age);
         u.setHeightCm(dto.heightCm);
-        u.setWeightKg(dto.weightKg);
+        u.setWeightKg(dto.weightKg);            // ← peso corregido
         u.setNeckCm(dto.neckCm);
         u.setChestCm(dto.chestCm);
         u.setWaistCm(dto.waistCm);
@@ -46,14 +46,14 @@ public class ProfileController {
     }
 
     private static ProfileDto toDto(User u) {
-        ProfileDto d=new ProfileDto();
-        d.firstName=u.getFirstName(); d.lastName=u.getLastName();
-        d.age=u.getAge(); d.heightCm=u.getHeightCm(); d.weightKg=u.getWeightKg();
-        d.neckCm=u.getNeckCm(); d.chestCm=u.getChestCm(); d.waistCm=u.getWaistCm();
-        d.lowerAbsCm=u.getLowerAbsCm(); d.hipCm=u.getHipCm();
-        d.bicepsCm=u.getBicepsCm(); d.bicepsFlexCm=u.getBicepsFlexCm();
-        d.forearmCm=u.getForearmCm(); d.thighCm=u.getThighCm(); d.calfCm=u.getCalfCm();
-        d.frontImgUrl=u.getFrontImgUrl(); d.sideImgUrl=u.getSideImgUrl(); d.backImgUrl=u.getBackImgUrl();
+        ProfileDto d = new ProfileDto();
+        d.firstName = u.getFirstName(); d.lastName = u.getLastName();
+        d.age = u.getAge(); d.heightCm = u.getHeightCm(); d.weightKg = u.getWeightKg();
+        d.neckCm = u.getNeckCm(); d.chestCm = u.getChestCm(); d.waistCm = u.getWaistCm();
+        d.lowerAbsCm = u.getLowerAbsCm(); d.hipCm = u.getHipCm();
+        d.bicepsCm = u.getBicepsCm(); d.bicepsFlexCm = u.getBicepsFlexCm();
+        d.forearmCm = u.getForearmCm(); d.thighCm = u.getThighCm(); d.calfCm = u.getCalfCm();
+        d.frontImgUrl = u.getFrontImgUrl(); d.sideImgUrl = u.getSideImgUrl(); d.backImgUrl = u.getBackImgUrl();
         return d;
     }
 }
