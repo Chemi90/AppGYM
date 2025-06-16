@@ -1,13 +1,17 @@
+// backend/src/main/java/com/example/AppGYM/model/User.java
 package com.example.AppGYM.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-@Entity
-@Table(name = "users")
-@Getter @Setter
-public class User implements org.springframework.security.core.userdetails.UserDetails {
+import java.util.Collection;
+import java.util.Collections;
+
+@Entity @Data
+public class User implements UserDetails {         // ← implementa
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -17,20 +21,27 @@ public class User implements org.springframework.security.core.userdetails.UserD
     @Column(nullable = false)
     private String password;
 
-    private String firstName;
-    private String lastName;
+    /* -------- Perfil básico -------- */
+    private String firstName, lastName;
     private Integer age;
-    private Double heightCm;
-    private Double weightKg;
+    private Double heightCm, weightKg;
 
-    @Column(columnDefinition = "json")
-    private String measurements;
+    /* -------- Medidas (cm) -------- */
+    private Double neckCm, chestCm, waistCm, lowerAbsCm, hipCm,
+            bicepsCm, bicepsFlexCm, forearmCm, thighCm, calfCm;
 
-    /* ---- UserDetails boilerplate ---- */
-    @Override public java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> getAuthorities() { return java.util.List.of(); }
+    /* -------- Fotos (URLs) -------- */
+    private String frontImgUrl, sideImgUrl, backImgUrl;
+
+    /* === Métodos UserDetails (implementación mínima) === */
+    @Override public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.emptyList();        // sin roles
+    }
     @Override public String getUsername() { return email; }
-    @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public String getPassword() { return password; }
+
+    @Override public boolean isAccountNonExpired()     { return true; }
+    @Override public boolean isAccountNonLocked()      { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return true; }
+    @Override public boolean isEnabled()               { return true; }
 }

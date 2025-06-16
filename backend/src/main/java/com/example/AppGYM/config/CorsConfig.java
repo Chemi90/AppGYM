@@ -1,3 +1,4 @@
+// backend/src/main/java/com/example/AppGYM/config/CorsConfig.java
 package com.example.AppGYM.config;
 
 import org.springframework.context.annotation.Bean;
@@ -15,12 +16,12 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowedOrigins(List.of("https://appgymregistro.netlify.app"));
-        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        cfg.setAllowedHeaders(List.of("*"));          // Content-Type, Authorization, etc.
-        cfg.setAllowCredentials(true);                // por si algún día envías cookies
+        cfg.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        cfg.setAllowedHeaders(List.of("*"));
+        cfg.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
-        src.registerCorsConfiguration("/**", cfg);    // aplica a toda la API
+        src.registerCorsConfiguration("/**", cfg);
         return src;
     }
 }

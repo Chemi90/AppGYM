@@ -1,7 +1,6 @@
-// File: backend/src/main/java/com/example/AppGYM/service/CustomUserDetailsService.java
+// backend/src/main/java/com/example/AppGYM/service/CustomUserDetailsService.java
 package com.example.AppGYM.service;
 
-import com.example.AppGYM.model.User;
 import com.example.AppGYM.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,9 +8,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-/**
- * Carga al usuario por e-mail para Spring Security.
- */
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
@@ -19,7 +15,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository users;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username)
+            throws UsernameNotFoundException {
         return users.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
     }

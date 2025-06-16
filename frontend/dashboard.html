@@ -4,50 +4,93 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gym Tracker</title>
+
   <link rel="stylesheet" href="assets/css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
+
+  <!-- Barra superior + pestañas -->
   <nav class="navbar">
     <span class="brand">Gym Tracker</span>
+    <div class="tabs">
+      <a href="#profile"  class="tab">Perfil</a>
+      <a href="#machines" class="tab">Máquinas</a>
+      <a href="#daily"    class="tab">Diario</a>
+      <a href="#reports"  class="tab">Informes</a>
+    </div>
     <button id="logout" class="btn-danger">Salir</button>
   </nav>
 
   <main id="view-container" class="p-6 grid gap-6"></main>
 
-  <!-- ------- Templates (sin cambios funcionales) ------- -->
+  <!-- ---- PLANTILLAS ---- -->
+
+  <!-- perfil -->
   <template id="profile-view">
     <h2 class="view-title">Perfil</h2>
     <form id="profile-form" class="grid gap-4 max-w-xl">
-      <div class="grid" style="grid-template-columns:1fr 1fr; gap:1rem;">
+
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:1rem;">
         <input id="firstName" class="input" placeholder="Nombre" required />
         <input id="lastName"  class="input" placeholder="Apellidos" required />
       </div>
-      <div class="grid" style="grid-template-columns:repeat(3,1fr); gap:1rem;">
+
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:1rem;">
         <input id="age"    type="number" class="input" placeholder="Edad" required />
         <input id="height" type="number" class="input" placeholder="Estatura (cm)" required />
         <input id="weight" type="number" class="input" placeholder="Peso (kg)" required />
       </div>
-      <textarea id="measurements" rows="3" class="input" placeholder="Medidas del cuerpo (JSON opcional)"></textarea>
+
+      <!-- medidas corporales -->
+      <fieldset class="grid" style="grid-template-columns:repeat(3,1fr);gap:1rem;">
+        <legend class="font-semibold">Medidas (cm)</legend>
+        <input id="neck"        type="number" class="input" placeholder="Cuello">
+        <input id="chest"       type="number" class="input" placeholder="Pecho">
+        <input id="waist"       type="number" class="input" placeholder="Cintura">
+        <input id="lowerAbs"    type="number" class="input" placeholder="Abdomen bajo">
+        <input id="hip"         type="number" class="input" placeholder="Cadera">
+        <input id="biceps"      type="number" class="input" placeholder="Bíceps relaj.">
+        <input id="bicepsFlex"  type="number" class="input" placeholder="Bíceps flex.">
+        <input id="forearm"     type="number" class="input" placeholder="Antebrazo">
+        <input id="thigh"       type="number" class="input" placeholder="Muslo">
+        <input id="calf"        type="number" class="input" placeholder="Pantorrilla">
+      </fieldset>
+
+      <!-- fotos -->
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:1rem;">
+        <input id="photo-front" type="file"  accept="image/*">
+        <input id="photo-side"  type="file"  accept="image/*">
+        <input id="photo-back"  type="file"  accept="image/*">
+      </div>
+
       <button class="btn w-max">Guardar</button>
     </form>
   </template>
 
+  <!-- máquinas -->
   <template id="machines-view">
     <h2 class="view-title">Máquinas y pesos</h2>
+
     <form id="machine-form" class="flex flex-wrap gap-4 mb-4">
-      <input id="machine-name" class="input flex-1" placeholder="Nombre de la máquina" required />
-      <input id="machine-weight" type="number" class="input" style="width:6rem;" placeholder="Kg" required />
+      <input id="machine-name"   class="input flex-1" placeholder="Nombre de la máquina" required />
+      <input id="machine-kg"     type="number" class="input" style="width:6rem;" placeholder="Kg" required />
+      <input id="machine-reps"   type="number" class="input" style="width:5rem;" placeholder="Reps" required />
+      <input id="machine-sets"   type="number" class="input" style="width:5rem;" placeholder="Series" required />
       <button class="btn">Añadir / Actualizar</button>
     </form>
+
     <table class="bg-white shadow rounded-xl overflow-hidden">
       <thead>
-        <tr><th class="th">Máquina</th><th class="th">Peso (kg)</th><th class="th"></th></tr>
+        <tr>
+          <th class="th">Máquina</th><th class="th">Kg</th><th class="th">Reps</th><th class="th">Series</th><th class="th"></th>
+        </tr>
       </thead>
       <tbody id="machine-table"></tbody>
     </table>
   </template>
 
+  <!-- diario -->
   <template id="daily-view">
     <h2 class="view-title">Registro diario</h2>
     <form id="daily-form" class="grid gap-4">
@@ -55,9 +98,18 @@
       <div id="daily-machines" class="grid gap-2"></div>
       <button class="btn w-max">Guardar registro</button>
     </form>
-    <hr class="my-6" />
-    <h3 class="font-semibold mb-2">Histórico</h3>
-    <div id="history"></div>
+  </template>
+
+  <!-- informes -->
+  <template id="reports-view">
+    <h2 class="view-title">Informes PDF</h2>
+    <button id="full-pdf" class="btn mb-4">PDF completo</button>
+
+    <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1rem;">
+      <input id="from" type="date" class="input">
+      <input id="to"   type="date" class="input">
+    </div>
+    <button id="range-pdf" class="btn">PDF intervalo</button>
   </template>
 
   <script src="assets/js/app.js" type="module"></script>

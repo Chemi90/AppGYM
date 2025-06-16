@@ -1,24 +1,31 @@
+// backend/src/main/java/com/example/AppGYM/model/DailyEntry.java
 package com.example.AppGYM.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.Map;
 
-@Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "workoutDate"}))
-@Getter @Setter
+@Entity @Data
 public class DailyEntry {
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDate workoutDate;
-
-    @ManyToOne(optional = false)
+    @ManyToOne @JoinColumn(nullable=false)
     private User user;
 
-    /** machineId → weight map stored as JSON */
-    @Column(columnDefinition = "json")
-    private String details;
+    private LocalDate date;
+
+    /** máquinaId -> peso/reps/sets */
+    @ElementCollection
+    private Map<Long,Exercise> details;
+
+    @Embeddable @Data
+    public static class Exercise {
+        private Double weightKg;
+        private Integer reps;
+        private Integer sets;
+    }
 }

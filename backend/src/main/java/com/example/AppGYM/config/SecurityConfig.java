@@ -1,4 +1,4 @@
-// File: backend/src/main/java/com/example/AppGYM/config/SecurityConfig.java
+// backend/src/main/java/com/example/AppGYM/config/SecurityConfig.java
 package com.example.AppGYM.config;
 
 import lombok.RequiredArgsConstructor;
@@ -23,33 +23,26 @@ public class SecurityConfig {
   private final JwtFilter jwtFilter;
   private final UserDetailsService users;
   private final PasswordEncoder passwordEnc;
-  private final CorsConfig corsConfig;                 // Bean con CorsConfigurationSource
+  private final CorsConfig cors; /* inyectamos el bean */
 
-  /* ---------- AuthenticationManager ---------- */
   @Bean
-  public AuthenticationManager authManager() {
-    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-    provider.setUserDetailsService(users);
-    provider.setPasswordEncoder(passwordEnc);
-    return provider::authenticate;
+  public AuthenticationManager authenticationManager() {
+    DaoAuthenticationProvider p = new DaoAuthenticationProvider();
+    p.setUserDetailsService(users);
+    p.setPasswordEncoder(passwordEnc);
+    return p::authenticate;
   }
 
-  /* ---------- Main security chain ---------- */
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain filter(HttpSecurity http) throws Exception {
     http
-            // CORS (estilo Spring Security 6.1+)
-            .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
-            // CSRF off porque es API stateless
+            .cors(c -> c.configurationSource(cors.corsConfigurationSource()))
             .csrf(cs -> cs.disable())
-            // JWT = stateless
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            // Rutas públicas
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/**", "/actuator/health").permitAll()
-                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .requestMatchers("/api/auth/**","/actuator/health").permitAll()
+                    .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
                     .anyRequest().authenticated())
-            // Filtro JWT antes del UsernamePasswordAuthenticationFilter
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
