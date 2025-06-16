@@ -1,4 +1,3 @@
-// backend/src/main/java/com/example/AppGYM/controller/MachineController.java
 package com.example.AppGYM.controller;
 
 import com.example.AppGYM.dto.MachineEntryDto;
@@ -21,19 +20,26 @@ public class MachineController {
     private final MachineRepository machines;
     private final UserMachineRepository userMachines;
 
+    /* ──────────────────────────────── LISTA ─────────────────────────────── */
     @GetMapping
     public List<UserMachine> list(@AuthenticationPrincipal User u) {
-        return userMachines.findByUserId(u.getId());
+        return userMachines.findByUserId(u.getId());   // trae Machine dentro
     }
 
+    /* ────────────────────── ALTA / ACTUALIZACIÓN ───────────────────────── */
     @PostMapping
     public void upsert(@AuthenticationPrincipal User u,
                        @RequestBody MachineEntryDto dto) {
 
+        /* 1)  buscamos (o creamos) la máquina ------------------------------ */
         Machine m = machines.findByName(dto.getName())
-                .orElseGet(() -> machines.save(new Machine()));   // sin constructor args
-        m.setName(dto.getName());
+                .orElseGet(() -> {
+                    Machine x = new Machine();         //   <-         (1)
+                    x.setName(dto.getName());          //   <- nombre antes de save
+                    return machines.save(x);           //   <-         (2)
+                });
 
+        /* 2)  buscamos (o creamos) el vínculo usuario-máquina -------------- */
         UserMachine um = userMachines
                 .findByUserIdAndMachineId(u.getId(), m.getId())
                 .orElseGet(() -> {
@@ -43,6 +49,7 @@ public class MachineController {
                     return x;
                 });
 
+        /* 3)  actualizamos pesos / reps / series --------------------------- */
         um.setWeightKg(dto.getWeightKg());
         um.setReps(dto.getReps());
         um.setSets(dto.getSets());
@@ -50,6 +57,7 @@ public class MachineController {
         userMachines.save(um);
     }
 
+    /* ───────────────────────────── ELIMINAR ─────────────────────────────── */
     @DeleteMapping("/{id}")
     public void delete(@AuthenticationPrincipal User u, @PathVariable Long id) {
         userMachines.findById(id)
