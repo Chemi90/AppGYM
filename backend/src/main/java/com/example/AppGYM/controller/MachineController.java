@@ -30,16 +30,12 @@ public class MachineController {
     public void upsert(@AuthenticationPrincipal User u,
                        @RequestBody MachineEntryDto dto) {
 
-        /* -------- obtener o crear la máquina -------- */
         Machine m = machines.findByName(dto.getName())
-                .orElseGet(() -> {
-                    Machine x = new Machine();      // <- constructor vacío
-                    x.setName(dto.getName());
-                    return machines.save(x);
-                });
+                .orElseGet(() -> machines.save(new Machine()));   // sin constructor args
+        m.setName(dto.getName());
 
-        /* -------- obtener o crear vínculo usuario-máquina -------- */
-        UserMachine um = userMachines.findByUserIdAndMachineId(u.getId(), m.getId())
+        UserMachine um = userMachines
+                .findByUserIdAndMachineId(u.getId(), m.getId())
                 .orElseGet(() -> {
                     UserMachine x = new UserMachine();
                     x.setUser(u);
@@ -47,10 +43,10 @@ public class MachineController {
                     return x;
                 });
 
-        /* -------- actualizar valores -------- */
         um.setWeightKg(dto.getWeightKg());
         um.setReps(dto.getReps());
         um.setSets(dto.getSets());
+
         userMachines.save(um);
     }
 

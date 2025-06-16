@@ -142,26 +142,28 @@ async function dashboard(){
   /* ------------------------------------------------------------------
      MACHINES
      ------------------------------------------------------------------ */
-  async function machinesView(){
-    const table = qs("#machine-table");
-    const list  = await (await fetch(`${API_BASE}/api/machines`,{ headers:authHeaders() })).json();
-    renderRows(list);
+  async function machinesView() {
+  const table = qs("#machine-table");
+  const list  = await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json();
+  renderRows(list);
 
-    const form = qs("#machine-form");
-    form.onsubmit = async e =>{
-      e.preventDefault();
-      const body = {
-        name    : form["machine-name"].value,
-        weightKg: +form["machine-kg"].value,
-        reps    : +form["machine-reps"].value,
-        sets    : +form["machine-sets"].value
-      };
-      await fetch(`${API_BASE}/api/machines`,{
-        method:"POST", headers:authHeaders(), body:JSON.stringify(body)
-      });
-      form.reset();
-      renderRows(await (await fetch(`${API_BASE}/api/machines`,{ headers:authHeaders() })).json());
+  const form = qs("#machine-form");
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const body = {
+      name     : form["machine-name"].value,
+      weightKg : +form["machine-kg"].value,   //  <──  antes ponía machine-weight
+      reps     : +form["machine-reps"].value,
+      sets     : +form["machine-sets"].value
     };
+    await fetch(`${API_BASE}/api/machines`, {
+      method : "POST",
+      headers: authHeaders(),
+      body   : JSON.stringify(body)
+    });
+    form.reset();
+    renderRows(await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json());
+  };
 
     function renderRows(rows){
       table.innerHTML="";
