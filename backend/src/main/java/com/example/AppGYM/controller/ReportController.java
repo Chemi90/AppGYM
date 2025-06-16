@@ -25,13 +25,13 @@ public class ReportController {
     private final UserRepository users;
     private final HttpServletRequest request;
 
-    /* ---------- PDF completo ---------- */
+    /* ───────── PDF completo ───────── */
     @GetMapping("/full")
     public ResponseEntity<byte[]> full(
             @AuthenticationPrincipal User u,
-            @RequestParam(name = "token", required = false) String token) {
+            @RequestParam(name="token", required=false) String token) {
 
-        log.debug("GET /report/full  principal={}  tokenParam={}", u, token);
+        log.debug("GET /report/full principal={} tokenParam={}", u, token);
         u = resolveUser(u, token);
 
         byte[] bytes = pdf.buildFull(u);
@@ -42,22 +42,22 @@ public class ReportController {
                 .body(bytes);
     }
 
-    /* ---------- PDF por período ---------- */
+    /* ───────── PDF por período ───────── */
     @GetMapping("/period")
     public ResponseEntity<byte[]> period(
             @AuthenticationPrincipal User u,
-            @RequestParam(name = "from") String from,
-            @RequestParam(name = "to")   String to,
-            @RequestParam(name = "token", required = false) String token) {
+            @RequestParam(name="from") String from,
+            @RequestParam(name="to")   String to,
+            @RequestParam(name="token", required=false) String token) {
 
-        log.debug("GET /report/period  principal={}  tokenParam={}", u, token);
+        log.debug("GET /report/period principal={} tokenParam={}", u, token);
         u = resolveUser(u, token);
 
         LocalDate f = LocalDate.parse(from);
         LocalDate t = LocalDate.parse(to);
 
         byte[] bytes = pdf.buildPeriod(u, f, t);
-        String file = String.format("progreso_%s_%s.pdf", from, to);
+        String file  = String.format("progreso_%s_%s.pdf", from, to);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
@@ -66,12 +66,12 @@ public class ReportController {
                 .body(bytes);
     }
 
-    /* ---------- helper: valida token ---------- */
-    private User resolveUser(User u, String token) {
-        if (u != null) return u;                // ya autenticado
+    /* ───────── helper ───────── */
+    private User resolveUser(User u, String token){
+        if (u != null) return u;                // autenticado por JWTFilter
 
-        /* 1) token en query  */
-        if (token == null) {
+        /* 1) token en query */
+        if (token == null){
             /* 2) Authorization header */
             String h = request.getHeader("Authorization");
             if (h != null && h.startsWith("Bearer "))

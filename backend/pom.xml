@@ -1,6 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -8,17 +9,17 @@
   <artifactId>gymapp</artifactId>
   <version>1.0.0</version>
 
-  <!--- Propiedades globales -->
+  <!-- ────────── Propiedades globales ────────── -->
   <properties>
     <java.version>17</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
 
     <spring.boot.version>3.3.0</spring.boot.version>
-    <jjwt.version>0.11.5</jjwt.version> <!-- incluye parserBuilder() -->
+    <jjwt.version>0.11.5</jjwt.version>
   </properties>
 
-  <!--- BOM de Spring Boot -->
+  <!-- ────────── BOM Spring Boot ────────── -->
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -31,7 +32,7 @@
     </dependencies>
   </dependencyManagement>
 
-  <!--- Dependencias -->
+  <!-- ────────── Dependencias ────────── -->
   <dependencies>
     <!-- Web & JPA -->
     <dependency>
@@ -53,18 +54,18 @@
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
       <artifactId>jjwt-api</artifactId>
-      <version>0.11.5</version>
+      <version>${jjwt.version}</version>
     </dependency>
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
       <artifactId>jjwt-impl</artifactId>
-      <version>0.11.5</version>
+      <version>${jjwt.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
       <artifactId>jjwt-jackson</artifactId>
-      <version>0.11.5</version>
+      <version>${jjwt.version}</version>
       <scope>runtime</scope>
     </dependency>
 
@@ -89,6 +90,7 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- Actuator & PDFBox -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
@@ -100,29 +102,31 @@
     </dependency>
   </dependencies>
 
-  <!--- Build -->
+  <!-- ────────── Build ────────── -->
   <build>
     <plugins>
-      <!-- Empaqueta el jar con manifest Main-Class -->
+      <!-- Empaqueta el jar -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <executions>
           <execution>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
+            <goals><goal>repackage</goal></goals>
           </execution>
         </executions>
       </plugin>
 
-      <!-- Compilador apuntando a Java 17 -->
+      <!-- Compilador: Java 17 + flag -parameters -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
         <configuration>
-          <release>${java.version}</release>
+          <source>17</source>
+          <target>17</target>
+          <compilerArgs>
+            <arg>-parameters</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
     </plugins>
