@@ -2,84 +2,78 @@ package com.example.AppGYM.controller;
 
 import com.example.AppGYM.dto.BodyStatsDto;
 import com.example.AppGYM.model.BodyStats;
-import com.example.AppGYM.model.ProgressPhoto;
 import com.example.AppGYM.model.User;
 import com.example.AppGYM.repository.BodyStatsRepository;
-import com.example.AppGYM.repository.ProgressPhotoRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * End-points REST para registrar y consultar medidas / fotos.
+ *  – POST  /api/stats            ⇒ recibe JSON (@RequestBody)
+ *  – GET   /api/stats            ⇒ último registro del usuario
+ *  – GET   /api/stats/range      ⇒ rango de fechas (from,to)
+ */
 @RestController
 @RequestMapping("/api/stats")
 @RequiredArgsConstructor
 public class StatsController {
 
-    private final BodyStatsRepository statsRepo;
-    private final ProgressPhotoRepository photoRepo;
+    private final BodyStatsRepository repo;
 
-    /* ────── histórico completo ────── */
+    /* ────────────────────────────────────────────────────────────────
+       1) Última medición
+       ──────────────────────────────────────────────────────────────── */
     @GetMapping
-    public List<BodyStats> list(@AuthenticationPrincipal User u) {
-        return statsRepo.findByUserIdOrderByDateAsc(u.getId());
+    public BodyStats latest(@AuthenticationPrincipal User u) {
+        return repo.findTopByUserIdOrderByDateDesc(u.getId()).orElse(null);
     }
 
-    /* ────── última medición ────── */
-    @GetMapping("/last")
-    public BodyStats last(@AuthenticationPrincipal User u) {
-        return statsRepo.findTopByUserIdOrderByDateDesc(u.getId())
-                .orElse(null);
+    /* ────────────────────────────────────────────────────────────────
+       2) Rango de fechas
+       ──────────────────────────────────────────────────────────────── */
+    @GetMapping("/range")
+    public List<BodyStats> range(@AuthenticationPrincipal User u,
+                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return repo.findByUserIdAndDateBetweenOrderByDateAsc(u.getId(), from, to);
     }
 
-    /* ────── guardar medición + fotos ────── */
-    @PostMapping @Transactional
-    public void save(@AuthenticationPrincipal User u,
-                     @ModelAttribute BodyStatsDto dto,
-                     @RequestPart(required = false) MultipartFile front,
-                     @RequestPart(required = false) MultipartFile side,
-                     @RequestPart(required = false) MultipartFile back) {
+    /* ────────────────────────────────────────────────────────────────
+       3) Alta / actualización  (ahora acepta JSON)
+       ──────────────────────────────────────────────────────────────── */
+    @PostMapping
+    @Transactional
+    public void upsert(@AuthenticationPrincipal User u,
+                       @RequestBody BodyStatsDto dto) {
 
-        /* ---- medidas ---- */
-        BodyStats s = new BodyStats();
-        s.setUser(u);
-        s.setDate(dto.date() == null ? LocalDate.now() : dto.date());
-        s.setWeightKg(dto.weightKg());
-        s.setNeckCm(dto.neckCm());
-        s.setChestCm(dto.chestCm());
-        s.setWaistCm(dto.waistCm());
-        s.setLowerAbsCm(dto.lowerAbsCm());
-        s.setHipCm(dto.hipCm());
-        s.setBicepsCm(dto.bicepsCm());
-        s.setBicepsFlexCm(dto.bicepsFlexCm());
-        s.setForearmCm(dto.forearmCm());
-        s.setThighCm(dto.thighCm());
-        s.setCalfCm(dto.calfCm());
-        statsRepo.save(s);
+        /* si ya existe registro para esa fecha, lo actualizamos */
+        BodyStats bs = repo.findByUserIdAndDate(u.getId(), dto.date())
+                .orElseGet(() -> {
+                    BodyStats x = new BodyStats();
+                    x.setUser(u);
+                    x.setDate(dto.date() == null ? LocalDate.now() : dto.date());
+                    return x;
+                });
 
-        /* ---- fotos opcionales ---- */
-        uploadPhoto(u, s.getDate(), ProgressPhoto.Type.FRONT, front);
-        uploadPhoto(u, s.getDate(), ProgressPhoto.Type.SIDE , side );
-        uploadPhoto(u, s.getDate(), ProgressPhoto.Type.BACK , back );
-    }
+        /* copia de campos (todos opcionales) */
+        bs.setWeightKg(dto.weightKg());
+        bs.setNeckCm(dto.neckCm());
+        bs.setChestCm(dto.chestCm());
+        bs.setWaistCm(dto.waistCm());
+        bs.setLowerAbsCm(dto.lowerAbsCm());
+        bs.setHipCm(dto.hipCm());
+        bs.setBicepsCm(dto.bicepsCm());
+        bs.setBicepsFlexCm(dto.bicepsFlexCm());
+        bs.setForearmCm(dto.forearmCm());
+        bs.setThighCm(dto.thighCm());
+        bs.setCalfCm(dto.calfCm());
 
-    /* helper */
-    private void uploadPhoto(User u, LocalDate date,
-                             ProgressPhoto.Type type,
-                             MultipartFile file) {
-        if (file == null || file.isEmpty()) return;
-
-        // En producción subirías a S3 / Cloudinary.  Aquí guardamos un
-        // objeto de referencia solamente (url=fake).
-        ProgressPhoto p = new ProgressPhoto();
-        p.setUser(u);
-        p.setDate(date);
-        p.setType(type);
-        p.setUrl("uploaded://" + file.getOriginalFilename());
-        photoRepo.save(p);
+        repo.save(bs);
     }
 }
