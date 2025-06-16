@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface BodyStatsRepository extends JpaRepository<BodyStats,Long> {
-    Optional<BodyStats> findTopByUserIdOrderByDateDesc(Long userId);  // último registro
+public interface BodyStatsRepository extends JpaRepository<BodyStats, Long> {
+
+    /* último registro de medidas */
+    Optional<BodyStats> findTopByUserIdOrderByDateDesc(Long userId);
 }
