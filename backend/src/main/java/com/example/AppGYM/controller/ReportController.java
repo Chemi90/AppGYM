@@ -1,4 +1,3 @@
-// backend/src/main/java/com/example/AppGYM/controller/ReportController.java
 package com.example.AppGYM.controller;
 
 import com.example.AppGYM.model.User;
@@ -24,31 +23,32 @@ public class ReportController {
     private final PdfService pdf;
     private final JwtService jwt;
     private final UserRepository users;
-    private final HttpServletRequest request;          // ← para leer el header
+    private final HttpServletRequest request;
 
-    /* -------- completo -------- */
+    /* ---------- PDF completo ---------- */
     @GetMapping("/full")
     public ResponseEntity<byte[]> full(
             @AuthenticationPrincipal User u,
-            @RequestParam(required=false) String token) {
+            @RequestParam(name = "token", required = false) String token) {
 
         log.debug("GET /report/full  principal={}  tokenParam={}", u, token);
-        u = resolveUser(u, token);                       // valida usuario
+        u = resolveUser(u, token);
 
         byte[] bytes = pdf.buildFull(u);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=progreso.pdf")
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=progreso.pdf")
                 .body(bytes);
     }
 
-    /* -------- período -------- */
+    /* ---------- PDF por período ---------- */
     @GetMapping("/period")
     public ResponseEntity<byte[]> period(
             @AuthenticationPrincipal User u,
-            @RequestParam String from,
-            @RequestParam String to,
-            @RequestParam(required=false) String token) {
+            @RequestParam(name = "from") String from,
+            @RequestParam(name = "to")   String to,
+            @RequestParam(name = "token", required = false) String token) {
 
         log.debug("GET /report/period  principal={}  tokenParam={}", u, token);
         u = resolveUser(u, token);
@@ -61,17 +61,18 @@ public class ReportController {
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename="+file)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=" + file)
                 .body(bytes);
     }
 
-    /* ===== helper: obtiene User por token ===== */
-    private User resolveUser(User u, String token){
-        if (u != null) return u;             // autenticado por filtro
+    /* ---------- helper: valida token ---------- */
+    private User resolveUser(User u, String token) {
+        if (u != null) return u;                // ya autenticado
 
-        /* — 1) token ?token=…  — */
-        if (token == null){
-            /* — 2) Authorization header — */
+        /* 1) token en query  */
+        if (token == null) {
+            /* 2) Authorization header */
             String h = request.getHeader("Authorization");
             if (h != null && h.startsWith("Bearer "))
                 token = h.substring(7);
