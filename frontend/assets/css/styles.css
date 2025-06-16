@@ -1,62 +1,54 @@
-/* RESET BÁSICO */
-*{margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",sans-serif}
+/* assets/css/styles.css  –  completo (añadido diseño responsive) */
 
-/* --- variables CSS --- */
-:root{
-  --clr-primary:#2563eb;
-  --clr-primary-dark:#1d4ed8;
-  --clr-danger:#dc2626;
-  --radius:0.6rem;
-}
+/* -------  Reset rápido  ------- */
+*{box-sizing:border-box;margin:0;padding:0;}
 
-/* --- utilidades --- */
-.input{
-  padding:.5rem .75rem;border:1px solid #ccc;border-radius:var(--radius);
-  width:100%;
-}
-.btn{
-  background:var(--clr-primary);color:#fff;border:none;
-  padding:.5rem 1.25rem;border-radius:var(--radius);cursor:pointer;
-}
-.btn:hover{background:var(--clr-primary-dark)}
-.btn-danger{background:var(--clr-danger)}
-.btn-danger:hover{background:#b91c1c}
-.link{color:var(--clr-primary)}
-.link:hover{text-decoration:underline}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5;}
 
-.navbar{
-  display:flex;align-items:center;justify-content:space-between;
-  background:#fff;padding:.75rem 1rem;box-shadow:0 2px 4px rgba(0,0,0,.05);
-}
-.brand{font-weight:700}
-.tabs{display:flex;gap:.75rem;flex-wrap:wrap}
-.tab{color:#555}
-.tab:hover{color:var(--clr-primary-dark)}
+a{color:inherit;text-decoration:none;}
+input,button,select{font:inherit}
 
-.container{background:#fff;padding:2rem;border-radius:var(--radius);width:min(100%,420px)}
-.title{font-size:1.5rem;font-weight:700;margin-bottom:1rem;text-align:center}
-.view-title{font-size:1.25rem;font-weight:700;margin-bottom:1rem}
-.th{padding:.5rem;text-align:left}
+/* -------  Utilidades  ------- */
+.input{padding:.5rem .75rem;border:1px solid #cbd5e1;border-radius:.5rem;width:100%;}
+.btn{background:#2563eb;color:#fff;padding:.5rem 1.25rem;border-radius:.5rem;cursor:pointer;}
+.btn:hover{background:#1d4ed8;}
+.btn-danger{background:#dc2626;color:#fff;padding:.25rem .75rem;border-radius:.35rem;}
+.btn-danger:hover{background:#b91c1c;}
+.title{font-size:1.5rem;font-weight:700;margin-bottom:1.5rem;}
+.navbar{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:#fff;box-shadow:0 1px 4px rgb(0 0 0 / .1);}
+.brand{font-weight:700;}
+.tabs{display:flex;gap:.5rem;flex-wrap:wrap}
+.tab{padding:.5rem .75rem;border-radius:.5rem;transition:.2s}
+.tab:hover{background:#e0e7ff}
+.view-title{font-size:1.25rem;font-weight:600;margin-bottom:1rem;}
+.th{padding:.5rem;text-align:left;font-weight:600;}
+.container{max-width:24rem;width:100%;background:#fff;padding:2rem;border-radius:1rem;box-shadow:0 4px 12px rgb(0 0 0 / .08);}
 
-table{width:100%;border-collapse:collapse}
+/* -------  Tables  ------- */
+table{width:100%;border-spacing:0;}
 td,th{padding:.5rem}
-tr:nth-child(even){background:#f9f9f9}
+tbody tr:nth-child(odd){background:#f8fafc;}
 
-/* --- responsive --- */
-@media (max-width:768px){           /* tablets */
-  .tabs{gap:.5rem}
-  .p-6{padding:1rem}
-  table,thead,tr{display:block}
-  thead{display:none}
-  tr{margin-bottom:1rem;border:1px solid #e5e7eb;border-radius:var(--radius)}
-  td{display:flex;justify-content:space-between;padding:.5rem 1rem;border-bottom:1px solid #e5e7eb}
-  td:last-child{border-bottom:none}
-  td::before{content:attr(data-label);font-weight:600;color:#6b7280}
+/* -------  Responsive  ------- */
+/* hasta 640px (móvil) */
+@media (max-width:640px){
+  .navbar{flex-direction:column;gap:.5rem}
+  .tabs{justify-content:center}
+  .tab{padding:.4rem .5rem;font-size:.875rem}
+  .input{padding:.4rem .6rem}
+  .btn{padding:.4rem 1rem}
+  table td:nth-child(3),table td:nth-child(4),table th:nth-child(3),table th:nth-child(4){
+    display:none; /* oculta reps/series en tabla máquinas para móvil */
+  }
 }
 
-@media (max-width:480px){           /* móviles */
-  .navbar{flex-direction:column;gap:.5rem}
-  .container{padding:1.5rem;width:min(100%,340px)}
-  .grid{grid-template-columns:1fr!important}
-  .tabs{justify-content:center}
+/* 641-1024px (tablet) */
+@media (min-width:641px) and (max-width:1024px){
+  .tab{padding:.45rem .65rem;font-size:.925rem}
+  .navbar{padding:1rem 1.25rem}
+}
+
+/* ≥1025px (desktop) */
+@media (min-width:1025px){
+  .container{max-width:28rem}
 }
