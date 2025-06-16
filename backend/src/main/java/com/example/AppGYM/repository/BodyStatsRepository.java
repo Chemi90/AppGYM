@@ -7,18 +7,15 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Mediciones corporales históricas del usuario.
- */
 public interface BodyStatsRepository extends JpaRepository<BodyStats, Long> {
 
-    /* Histórico completo ASC */
+    /* último registro (para “Medidas actuales”) */
+    Optional<BodyStats> findTopByUserIdOrderByDateDesc(Long userId);
+
+    /* histórico completo, ascendente por fecha */
     List<BodyStats> findByUserIdOrderByDateAsc(Long userId);
 
-    /* Histórico en intervalo ASC */
+    /* histórico acotado por fecha */
     List<BodyStats> findByUserIdAndDateBetweenOrderByDateAsc(
             Long userId, LocalDate from, LocalDate to);
-
-    /* Última medición (fecha más reciente) */
-    Optional<BodyStats> findTopByUserIdOrderByDateDesc(Long userId);
 }
