@@ -85,7 +85,10 @@ async function dashboard() {
   async function render() {
     const view = location.hash.slice(1) || "profile";
     container.innerHTML = "";
-    container.appendChild(templates[view].content.cloneNode(true));
+    const frag = templates[view].content.cloneNode(true);
+    /* ← animación de entrada */
+    frag.firstElementChild?.classList.add("fade-in");
+    container.appendChild(frag);
 
     if (view === "profile")  profileView();
     if (view === "stats")    statsView();
@@ -131,7 +134,7 @@ async function dashboard() {
   }
 
   /* -----------------------------------------------------------------------
-     STATS  (medidas + fotos)
+     STATS  (medidas)
      ----------------------------------------------------------------------- */
   async function statsView() {
     const form      = qs("#stats-form");
@@ -162,34 +165,7 @@ async function dashboard() {
         body   : JSON.stringify(body)
       });
 
-      /* ---------- fotos (si se seleccionaron) ---------- */
-      const photos = [
-        { id:"stats-front", type:"FRONT" },
-        { id:"stats-side" , type:"SIDE"  },
-        { id:"stats-back" , type:"BACK"  }
-      ];
-      for (const p of photos) {
-        const file = form[p.id].files[0];
-        if (!file) continue;
-
-        const fd = new FormData();
-        fd.append("type", p.type);
-        fd.append("file", file);
-
-        const resp = await fetch(`${API_BASE}/api/photos`, {
-          method : "POST",
-          headers: { "Authorization": authHeaders().Authorization },
-          body   : fd
-        });
-
-        console.log(`[PHOTO] ${p.type} → status=${resp.status}`);
-        if (!resp.ok) {
-          const txt = await resp.text().catch(()=>"(sin cuerpo)");
-          console.error("ERROR-PHOTO", txt);
-          alert("Error subiendo foto ("+p.type+")");
-        }
-      }
-      alert("Medidas/fotos guardadas.");
+      alert("Medidas guardadas.");
       form.reset();
     };
   }
