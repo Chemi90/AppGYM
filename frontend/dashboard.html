@@ -1,15 +1,11 @@
-<!-- frontend/dashboard.html  —  archivo completo -->
+<!-- frontend/dashboard.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gym Tracker · Panel</title>
-
-  <!-- Tus estilos -->
   <link rel="stylesheet" href="assets/css/styles.css" />
-
-  <!-- SweetAlert (avisos) -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -17,7 +13,6 @@
   <!-- ────── barra superior ────── -->
   <nav class="navbar">
     <span class="brand">Gym Tracker</span>
-
     <div class="tabs">
       <a href="#profile"  class="tab">Perfil</a>
       <a href="#stats"    class="tab">Medidas</a>
@@ -25,7 +20,6 @@
       <a href="#daily"    class="tab">Diario</a>
       <a href="#reports"  class="tab">Informes</a>
     </div>
-
     <button id="logout" class="btn-danger">Salir</button>
   </nav>
 
@@ -54,9 +48,9 @@
     </form>
   </template>
 
-  <!-- 2 · Medidas + Fotos ------------------------------------------------- -->
+  <!-- 2 · Medidas --------------------------------------------------------- -->
   <template id="stats-view">
-    <h2 class="view-title">Medidas y fotos</h2>
+    <h2 class="view-title">Medidas</h2>
 
     <form id="stats-form" class="grid gap-4 max-w-xl">
       <input id="stats-date" type="date" class="input" style="width:max-content;" required />
@@ -78,12 +72,7 @@
         <input id="stats-calf"       type="number" class="input" placeholder="Pantorrilla">
       </fieldset>
 
-      <!-- Fotos -->
-      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:1rem;">
-        <input id="stats-front" type="file" accept="image/*">
-        <input id="stats-side"  type="file" accept="image/*">
-        <input id="stats-back"  type="file" accept="image/*">
-      </div>
+      <!-- (Fotos eliminadas) -->
 
       <button class="btn w-max">Guardar</button>
     </form>
@@ -140,7 +129,6 @@
     <button id="range-pdf" class="btn">PDF intervalo</button>
   </template>
 
-  <!-- lógica -->
   <script src="assets/js/app.js" type="module"></script>
 </body>
 </html>
