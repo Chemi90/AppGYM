@@ -1,3 +1,4 @@
+// backend/src/main/java/com/example/AppGYM/service/PdfService.java
 package com.example.AppGYM.service;
 
 import com.example.AppGYM.model.BodyStats;
@@ -28,190 +29,209 @@ public class PdfService {
     private final BodyStatsRepository  statsRepo;
     private final DailyEntryRepository dailyRepo;
 
-    /* ========== API ========== */
-    public byte[] buildFull(User u)                          { return build(u, null, null); }
-    public byte[] buildPeriod(User u, LocalDate f, LocalDate t) { return build(u, f, t); }
+    /* ─────────── API ─────────── */
 
-    /* ========== core ========== */
-    private byte[] build(User u, LocalDate from, LocalDate to) {
+    public byte[] buildFull(User u){ return build(u,null,null); }
 
-        List<BodyStats> statsHist = statsRepo.findByUserIdOrderByDateAsc(u.getId());
-        BodyStats       current   = statsRepo
-                .findTopByUserIdOrderByDateDesc(u.getId())
-                .orElse(null);
+    public byte[] buildPeriod(User u, LocalDate from, LocalDate to){
+        return build(u,from,to);
+    }
 
-        List<DailyEntry> workouts = (from == null || to == null)
+    /* ───────── generador ───────── */
+
+    private byte[] build(User u, LocalDate from, LocalDate to){
+
+        List<BodyStats> hist   = statsRepo.findByUserIdOrderByDateAsc(u.getId());
+        BodyStats       actual = statsRepo.findTopByUserIdOrderByDateDesc(u.getId()).orElse(null);
+
+        List<DailyEntry> wos = (from==null||to==null)
                 ? dailyRepo.findByUserIdOrderByDateAsc(u.getId())
-                : dailyRepo.findByUserIdAndDateBetweenOrderByDateAsc(u.getId(), from, to);
+                : dailyRepo.findByUserIdAndDateBetweenOrderByDateAsc(u.getId(),from,to);
 
         log.debug("PDF | usr={}, current={}, history={}, workouts={}",
-                u.getEmail(), current != null, statsHist.size(), workouts.size());
+                u.getEmail(), actual!=null, hist.size(), wos.size());
 
-        try (PDDocument pdf = new PDDocument()) {
+        try (PDDocument pdf = new PDDocument()){
 
             PDPage page = new PDPage(PDRectangle.LETTER);
             pdf.addPage(page);
-            PDPageContentStream cs = new PDPageContentStream(pdf, page);
+            PDPageContentStream cs = new PDPageContentStream(pdf,page);
 
-            float x = 50, y = page.getMediaBox().getHeight() - 50;
+            float x0 = 50, y  = page.getMediaBox().getHeight()-50;
             float leading = 15;
 
-            /* ---------- título ---------- */
+            /* título ---------------------------------------------------- */
             cs.beginText();
-            cs.setFont(PDType1Font.HELVETICA_BOLD, 20);
-            cs.newLineAtOffset(x, y);
-            cs.showText("Informe de progreso – " + u.getFirstName() + " " + u.getLastName());
+            cs.setFont(PDType1Font.TIMES_BOLD,20);
+            cs.newLineAtOffset(x0,y);
+            cs.showText("Informe de progreso – "+u.getFirstName()+" "+u.getLastName());
             cs.endText();
-            y -= leading * 2;
+            y -= leading*2;
 
-            /* ---------- medidas actuales ---------- */
-            if (current != null) {
-                y = drawCurrent(cs, current, u.getHeightCm(), x, y);
+            /* bloque medidas actuales ----------------------------------- */
+            if(actual!=null){
+                y = drawCurrent(cs,actual,x0,y);
                 y -= leading;
             }
 
-            /* ---------- medidas históricas ---------- */
-            if (!statsHist.isEmpty()) {
-                y = drawHistorical(cs, statsHist, x, y);
+            /* bloque históricas ----------------------------------------- */
+            if(!hist.isEmpty()){
+                y = drawHistoric(cs,hist,x0,y);
                 y -= leading;
             }
 
-            /* ---------- histórico entrenos ---------- */
-            drawWorkouts(cs, workouts, x, y);
+            /* bloque entrenos ------------------------------------------- */
+            drawWorkouts(cs,wos,x0,y);
 
             cs.close();
 
-            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()){
                 pdf.save(bos);
-                log.debug("[PDF] Tamaño final = {} bytes", bos.size());
+                log.debug("[PDF] Tamaño final = {} bytes",bos.size());
                 return bos.toByteArray();
             }
 
-        } catch (Exception ex) {
-            log.error("PDF | ERROR {}", ex.getMessage(), ex);
-            throw new RuntimeException("PDF error", ex);
+        }catch(Exception ex){
+            log.error("PDF | ERROR {}",ex.getMessage(),ex);
+            throw new RuntimeException("PDF error",ex);
         }
     }
 
-    /* =========================================================
-       BLOQUES DE DIBUJO
-       ========================================================= */
-    private float drawCurrent(PDPageContentStream cs, BodyStats s,
-                              Double heightCm, float x, float y) throws Exception {
+    /* ───────── medidas actuales ───────── */
 
-        cs.beginText();
-        cs.setFont(PDType1Font.HELVETICA_BOLD, 14);
-        cs.newLineAtOffset(x, y);
-        cs.showText("Medidas actuales");
-        cs.endText();
+    private float drawCurrent(PDPageContentStream cs, BodyStats s,
+                              float x, float y) throws Exception{
+
+        cs.setFont(PDType1Font.HELVETICA_BOLD,14);
+        cs.beginText(); cs.newLineAtOffset(x,y); cs.showText("Medidas actuales"); cs.endText();
         y -= 18;
 
         Map<String,String> rows = Map.ofEntries(
-                Map.entry("Peso (kg)",     nf(s.getWeightKg())),
-                Map.entry("Estatura (cm)", nf(heightCm)),
-                Map.entry("Cuello",        nf(s.getNeckCm())),
-                Map.entry("Pecho",         nf(s.getChestCm())),
-                Map.entry("Cintura",       nf(s.getWaistCm())),
-                Map.entry("Abd. bajo",     nf(s.getLowerAbsCm())),
-                Map.entry("Cadera",        nf(s.getHipCm())),
-                Map.entry("Bíceps relax",  nf(s.getBicepsCm())),
-                Map.entry("Bíceps flex",   nf(s.getBicepsFlexCm())),
-                Map.entry("Antebrazo",     nf(s.getForearmCm())),
-                Map.entry("Muslo",         nf(s.getThighCm())),
-                Map.entry("Pantorrilla",   nf(s.getCalfCm()))
+                e("Peso (kg)"        , nf(s.getWeightKg())),
+                e("Estatura (cm)"    , nf(s.getUser().getHeightCm())),
+                e("Cuello"           , nf(s.getNeckCm())),
+                e("Pecho"            , nf(s.getChestCm())),
+                e("Cintura"          , nf(s.getWaistCm())),
+                e("Abd. bajo"        , nf(s.getLowerAbsCm())),
+                e("Cadera"           , nf(s.getHipCm())),
+                e("Muslo"            , nf(s.getThighCm())),
+                e("Pantorrilla"      , nf(s.getCalfCm())),
+                e("Bíceps relax"     , nf(s.getBicepsCm())),
+                e("Bíceps flex"      , nf(s.getBicepsFlexCm())),
+                e("Antebrazo"        , nf(s.getForearmCm()))
         );
-        cs.setFont(PDType1Font.HELVETICA, 11);
-        for (var e : rows.entrySet()) {
+
+        cs.setFont(PDType1Font.HELVETICA,11);
+        for(var e:rows.entrySet()){
             cs.beginText();
-            cs.newLineAtOffset(x + 10, y);
-            cs.showText(String.format("%-18s %s", e.getKey() + ":", e.getValue()));
+            cs.newLineAtOffset(x+10,y);
+            cs.showText(String.format("%-18s %s",e.getKey()+":",e.getValue()));
             cs.endText();
             y -= 14;
         }
         return y;
     }
 
-    private float drawHistorical(PDPageContentStream cs,
-                                 List<BodyStats> hist,
-                                 float x, float y) throws Exception {
+    /* ───────── medidas históricas ───────── */
 
-        cs.beginText();
-        cs.setFont(PDType1Font.HELVETICA_BOLD, 14);
-        cs.newLineAtOffset(x, y);
-        cs.showText("Medidas históricas");
-        cs.endText();
+    private float drawHistoric(PDPageContentStream cs, List<BodyStats> list,
+                               float x0, float y) throws Exception{
+
+        cs.setFont(PDType1Font.HELVETICA_BOLD,14);
+        cs.beginText(); cs.newLineAtOffset(x0,y); cs.showText("Medidas históricas"); cs.endText();
         y -= 18;
 
         /* cabecera */
-        cs.setFont(PDType1Font.HELVETICA_BOLD, 11);
-        float yy = y;
-        for (String head : List.of("Fecha","Peso","Cintura","Cadera","Muslo","Bíceps"))
-        {
-            cs.beginText();
-            cs.newLineAtOffset(x + 10, yy);
-            cs.showText(head);
-            cs.endText();
-            x += 60;
-        }
-        x -= 10 + 60*5;
-        y -= 14;
+        cs.setFont(PDType1Font.HELVETICA_BOLD,10);
+        float x = x0+4;
+        String[] heads = {"Fecha","Peso","Cuello","Pecho","Cintura","Abd","Cadera",
+                "Muslo","Pantor","Bícep R","Bícep F","Antebr","IMC"};
+        int[]    wcols = {55,40,40,40,45,35,45,45,45,45,45,45,35};
 
-        cs.setFont(PDType1Font.HELVETICA, 10);
+        for(int i=0;i<heads.length;i++){
+            cs.beginText(); cs.newLineAtOffset(x,y); cs.showText(heads[i]); cs.endText();
+            x += wcols[i];
+        }
+        y -= 12;
+
+        /* filas */
+        cs.setFont(PDType1Font.HELVETICA,9);
         DateTimeFormatter df = DateTimeFormatter.ISO_DATE;
-        for (BodyStats s : hist) {
-            String[] cols = {
+        for(BodyStats s:list){
+            x = x0+4;
+            String[] vals = {
                     df.format(s.getDate()),
                     nf(s.getWeightKg()),
+                    nf(s.getNeckCm()),
+                    nf(s.getChestCm()),
                     nf(s.getWaistCm()),
+                    nf(s.getLowerAbsCm()),
                     nf(s.getHipCm()),
                     nf(s.getThighCm()),
-                    nf(s.getBicepsCm())
+                    nf(s.getCalfCm()),
+                    nf(s.getBicepsCm()),
+                    nf(s.getBicepsFlexCm()),
+                    nf(s.getForearmCm()),
+                    bmi(s)
             };
-            float xx = x + 10;
-            for (String c : cols) {
-                cs.beginText();
-                cs.newLineAtOffset(xx, y);
-                cs.showText(c);
-                cs.endText();
-                xx += 60;
+            for(int i=0;i<vals.length;i++){
+                cs.beginText(); cs.newLineAtOffset(x,y); cs.showText(vals[i]); cs.endText();
+                x += wcols[i];
             }
-            y -= 12;
+            y -= 11;
         }
         return y;
     }
 
-    private void drawWorkouts(PDPageContentStream cs,
-                              List<DailyEntry> wos,
-                              float x, float y) throws Exception {
+    /* ───────── entrenos ───────── */
 
-        cs.beginText();
-        cs.setFont(PDType1Font.HELVETICA_BOLD, 14);
-        cs.newLineAtOffset(x, y);
-        cs.showText("Histórico de entrenos");
-        cs.endText();
+    private void drawWorkouts(PDPageContentStream cs, List<DailyEntry> wos,
+                              float x0, float y) throws Exception{
+
+        cs.setFont(PDType1Font.HELVETICA_BOLD,14);
+        cs.beginText(); cs.newLineAtOffset(x0,y); cs.showText("Histórico de entrenos"); cs.endText();
         y -= 18;
 
-        cs.setFont(PDType1Font.HELVETICA_BOLD, 11);
-        cs.beginText(); cs.newLineAtOffset(x+10, y); cs.showText("Fecha"); cs.endText();
-        cs.beginText(); cs.newLineAtOffset(x+70, y); cs.showText("Máquina"); cs.endText();
-        cs.beginText(); cs.newLineAtOffset(x+270, y);cs.showText("Kg / Reps x Sets"); cs.endText();
+        cs.setFont(PDType1Font.HELVETICA_BOLD,11);
+        cs.beginText(); cs.newLineAtOffset(x0+4,y);   cs.showText("Fecha"); cs.endText();
+        cs.beginText(); cs.newLineAtOffset(x0+60,y);  cs.showText("Máquina"); cs.endText();
+        cs.beginText(); cs.newLineAtOffset(x0+260,y); cs.showText("Kg / Reps x Sets"); cs.endText();
         y -= 14;
 
-        cs.setFont(PDType1Font.HELVETICA, 10);
+        cs.setFont(PDType1Font.HELVETICA,10);
         DateTimeFormatter df = DateTimeFormatter.ISO_DATE;
+        LocalDate lastDate = null;
 
-        for (DailyEntry e : wos) {
-            for (DailyEntry.Exercise ex : e.getDetails().values()) {
-                cs.beginText(); cs.newLineAtOffset(x+10, y); cs.showText(df.format(e.getDate())); cs.endText();
-                cs.beginText(); cs.newLineAtOffset(x+70, y); cs.showText(ex.getName());          cs.endText();
-                cs.beginText(); cs.newLineAtOffset(x+270, y);
-                cs.showText(ex.getWeightKg() + " kg / " + ex.getReps() + " x " + ex.getSets());
-                cs.endText();
+        for(DailyEntry e:wos){
+            if(lastDate!=null && !lastDate.equals(e.getDate())){
+                /* línea divisoria */
+                cs.moveTo(x0+2,y+5);
+                cs.lineTo(x0+500,y+5);
+                cs.stroke();
+                y -= 4;
+            }
+            lastDate = e.getDate();
+
+            for(DailyEntry.Exercise ex:e.getDetails().values()){
+                cs.beginText(); cs.newLineAtOffset(x0+4,y);  cs.showText(df.format(e.getDate())); cs.endText();
+                cs.beginText(); cs.newLineAtOffset(x0+60,y); cs.showText(ex.getName());           cs.endText();
+                String kgRepSet = ex.getWeightKg()+" kg / "+ex.getReps()+" x "+ex.getSets();
+                cs.beginText(); cs.newLineAtOffset(x0+260,y);cs.showText(kgRepSet);               cs.endText();
                 y -= 12;
             }
         }
     }
 
-    /* ========================================================= */
-    private static String nf(Double d){ return d == null ? "—" : String.format("%.1f", d); }
+    /* ───────── util ───────── */
+
+    private static Map.Entry<String,String> e(String k,String v){ return Map.entry(k,v); }
+
+    private static String nf(Double d){ return d==null? "—" : String.format("%.1f",d); }
+
+    private static String bmi(BodyStats s){
+        Double w = s.getWeightKg(), h = s.getUser().getHeightCm();
+        if(w==null||h==null) return "—";
+        double bmi = w / Math.pow(h/100,2);
+        return String.format("%.1f",bmi);
+    }
 }
