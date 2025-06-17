@@ -32,17 +32,17 @@ public class PdfService {
     private final BodyStatsRepository  statsRepo;
     private final DailyEntryRepository dailyRepo;
 
-    /* ---------- API público ---------- */
-    public byte[] buildFull(User u)                       { return build(u, null, null); }
-    public byte[] buildPeriod(User u, LocalDate f, LocalDate t){ return build(u, f, t); }
+    /* ---------- API ---------- */
+    public byte[] buildFull(User u)                              { return build(u,null,null); }
+    public byte[] buildPeriod(User u, LocalDate f, LocalDate t)  { return build(u,f,t); }
 
-    /* ---------- generador ---------- */
+    /* ---------- core ---------- */
     private byte[] build(User u, LocalDate from, LocalDate to) {
 
         List<BodyStats> statsHist = statsRepo.findByUserIdOrderByDateAsc(u.getId());
-        BodyStats       current   = statsRepo.findTopByUserIdOrderByDateDesc(u.getId()).orElse(null);
+        BodyStats current = statsRepo.findTopByUserIdOrderByDateDesc(u.getId()).orElse(null);
 
-        List<DailyEntry> workouts  = (from==null||to==null)
+        List<DailyEntry> workouts = (from==null||to==null)
                 ? dailyRepo.findByUserIdOrderByDateAsc(u.getId())
                 : dailyRepo.findByUserIdAndDateBetweenOrderByDateAsc(u.getId(),from,to);
 
@@ -53,28 +53,38 @@ public class PdfService {
 
             PDPage page = new PDPage(PDRectangle.LETTER);
             pdf.addPage(page);
-            PDPageContentStream cs = new PDPageContentStream(pdf, page);
 
-            float x = 50, y = page.getMediaBox().getHeight() - 50, leading = 15;
+            PDPageContentStream cs = null;
+            try {
+                cs = new PDPageContentStream(pdf,page);
 
-            /* título */
-            cs.beginText(); cs.setFont(PDType1Font.HELVETICA_BOLD,20);
-            cs.newLineAtOffset(x,y); cs.showText("Informe de progreso – "
-                    + u.getFirstName()+" "+u.getLastName());
-            cs.endText(); y -= leading*2;
+                float x=50, y=page.getMediaBox().getHeight()-50, leading=15;
 
-            if (current!=null){ y = drawCurrentMeasures(cs,current,x,y) - leading; }
-            if (!statsHist.isEmpty()){ y = drawHistoricalMeasures(cs,statsHist,x,y) - leading; }
+                /* título ---------------------------------------------------- */
+                cs.beginText(); cs.setFont(PDType1Font.HELVETICA_BOLD,20);
+                cs.newLineAtOffset(x,y);
+                cs.showText("Informe de progreso – "+u.getFirstName()+" "+u.getLastName());
+                cs.endText(); y-=leading*2;
 
-            y = drawPhotos(pdf,cs,current,x,y) - leading;
-            drawWorkouts(cs,workouts,x,y);
+                if(current!=null) y = drawCurrentMeasures(cs,current,x,y) - leading;
+                if(!statsHist.isEmpty()) y = drawHistoricalMeasures(cs,statsHist,x,y) - leading;
 
-            cs.close();
-            try (ByteArrayOutputStream bos=new ByteArrayOutputStream()){
-                pdf.save(bos); return bos.toByteArray();
+                y = drawPhotos(pdf,cs,current,x,y) - leading;
+
+                drawWorkouts(cs,workouts,x,y);
+
+            } finally {
+                if (cs!=null) cs.close();
+            }
+
+            /* devuelve bytes ----------------------------------------------- */
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()){
+                pdf.save(bos);
+                return bos.toByteArray();
             }
 
         } catch (Exception ex){
+            log.error("PDF | ERROR: {}", ex.getMessage(), ex);
             throw new RuntimeException("PDF error",ex);
         }
     }
@@ -82,39 +92,36 @@ public class PdfService {
     /* ---------- bloques ---------- */
 
     private float drawCurrentMeasures(PDPageContentStream cs, BodyStats s,
-                                      float x, float y) throws Exception {
+                                      float x,float y) throws Exception {
 
         cs.beginText(); cs.setFont(PDType1Font.HELVETICA_BOLD,14);
         cs.newLineAtOffset(x,y); cs.showText("Medidas actuales");
         cs.endText(); y-=18;
 
         Map<String,String> rows = Map.ofEntries(
-                Map.entry("Peso (kg)"      , nf(s.getWeightKg())),
-                Map.entry("Estatura (cm)"  , nf(s.getUser().getHeightCm())),
-                Map.entry("Cuello"         , nf(s.getNeckCm())),
-                Map.entry("Pecho"          , nf(s.getChestCm())),
-                Map.entry("Cintura"        , nf(s.getWaistCm())),
-                Map.entry("Abd. bajo"      , nf(s.getLowerAbsCm())),
-                Map.entry("Cadera"         , nf(s.getHipCm())),
-                Map.entry("Bíceps relax"   , nf(s.getBicepsCm())),
-                Map.entry("Bíceps flex"    , nf(s.getBicepsFlexCm())),
-                Map.entry("Antebrazo"      , nf(s.getForearmCm())),
-                Map.entry("Muslo"          , nf(s.getThighCm())),
-                Map.entry("Pantorrilla"    , nf(s.getCalfCm()))
+                Map.entry("Peso (kg)"     , nf(s.getWeightKg())),
+                Map.entry("Estatura (cm)" , nf(s.getUser().getHeightCm())),
+                Map.entry("Cuello"        , nf(s.getNeckCm())),
+                Map.entry("Pecho"         , nf(s.getChestCm())),
+                Map.entry("Cintura"       , nf(s.getWaistCm())),
+                Map.entry("Abd. bajo"     , nf(s.getLowerAbsCm())),
+                Map.entry("Cadera"        , nf(s.getHipCm())),
+                Map.entry("Bíceps relax"  , nf(s.getBicepsCm())),
+                Map.entry("Bíceps flex"   , nf(s.getBicepsFlexCm())),
+                Map.entry("Antebrazo"     , nf(s.getForearmCm())),
+                Map.entry("Muslo"         , nf(s.getThighCm())),
+                Map.entry("Pantorrilla"   , nf(s.getCalfCm()))
         );
         cs.setFont(PDType1Font.HELVETICA,11);
-        for (var e: rows.entrySet()){
-            cs.beginText();
-            cs.newLineAtOffset(x+10,y);
-            cs.showText(String.format("%-18s %s",e.getKey()+":",e.getValue()));
-            cs.endText();
-            y-=14;
+        for (var e:rows.entrySet()){
+            cs.beginText(); cs.newLineAtOffset(x+10,y);
+            cs.showText(String.format("%-18s %s", e.getKey()+":",e.getValue()));
+            cs.endText(); y-=14;
         }
         return y;
     }
 
-    private float drawHistoricalMeasures(PDPageContentStream cs,
-                                         List<BodyStats> hist,
+    private float drawHistoricalMeasures(PDPageContentStream cs,List<BodyStats> hist,
                                          float x,float y) throws Exception {
 
         cs.beginText(); cs.setFont(PDType1Font.HELVETICA_BOLD,14);
@@ -123,23 +130,20 @@ public class PdfService {
 
         cs.setFont(PDType1Font.HELVETICA_BOLD,11);
         float headY=y;
-        for (String h: List.of("Fecha","Peso","Cintura","Cadera","Muslo","Bíceps",
-                "IMG Front/Side/Back")){
+        for(String h:List.of("Fecha","Peso","Cintura","Cadera","Muslo","Bíceps","IMG Front/Side/Back")){
             cs.beginText(); cs.newLineAtOffset(x+10,headY); cs.showText(h); cs.endText();
             x += (h.equals("IMG Front/Side/Back")?180:60);
         }
         x -= 10 + 60*5 + 180; y-=14; cs.setFont(PDType1Font.HELVETICA,10);
 
         DateTimeFormatter df=DateTimeFormatter.ISO_DATE;
-        for (BodyStats s:hist){
-            String[] col={
-                    df.format(s.getDate()), nf(s.getWeightKg()), nf(s.getWaistCm()),
-                    nf(s.getHipCm()), nf(s.getThighCm()), nf(s.getBicepsCm()), imgLabel(s)
-            };
+        for(BodyStats s:hist){
+            String[] col={ df.format(s.getDate()), nf(s.getWeightKg()), nf(s.getWaistCm()),
+                    nf(s.getHipCm()), nf(s.getThighCm()), nf(s.getBicepsCm()), imgLabel(s) };
             float xx=x+10;
-            for (String c:col){
-                cs.beginText(); cs.newLineAtOffset(xx,y); cs.showText(c); cs.endText();
-                xx += (c.equals(col[6])?180:60);
+            for(int i=0;i<col.length;i++){
+                cs.beginText(); cs.newLineAtOffset(xx,y); cs.showText(col[i]); cs.endText();
+                xx += (i==6?180:60);
             }
             y-=12;
         }
@@ -154,28 +158,34 @@ public class PdfService {
                 ProgressPhoto.Type.SIDE , current!=null?current.getSideImgUrl() :null,
                 ProgressPhoto.Type.BACK , current!=null?current.getBackImgUrl() :null
         );
-        if (map.values().stream().noneMatch(v->v!=null&& !v.isBlank())) return y;
+        if (map.values().stream().noneMatch(v->v!=null&&!v.isBlank())) return y;
 
         cs.beginText(); cs.setFont(PDType1Font.HELVETICA_BOLD,14);
-        cs.newLineAtOffset(x,y); cs.showText("Fotos"); cs.endText(); y-=18;
+        cs.newLineAtOffset(x,y); cs.showText("Fotos"); cs.endText();
+        y-=18;
 
         float imgW=160,imgH=0,gap=15,xx=x;
-        for (var e: map.entrySet()){
-            if (e.getValue()==null){ xx += imgW+gap; continue; }
-            Path p = Path.of(e.getValue().startsWith("/uploads/")
-                    ? e.getValue().substring(1) : e.getValue());
-            if (!Files.exists(p)){ xx += imgW+gap; continue; }
+        for(var e:map.entrySet()){
+            String url=e.getValue();
+            if(url==null||url.isBlank()){ xx+=imgW+gap; continue; }
 
-            PDImageXObject img=PDImageXObject.createFromFile(p.toString(),doc);
-            imgH = imgW*img.getHeight()/img.getWidth();
-            cs.drawImage(img,xx,y-imgH,imgW,imgH);
-            xx += imgW+gap;
+            Path p= Path.of( url.startsWith("/uploads/") ? url.substring(1) : url );
+            if(!Files.exists(p)){ log.debug("PDF | foto no encontrada {}",p); xx+=imgW+gap; continue; }
+
+            try{
+                PDImageXObject img=PDImageXObject.createFromFile(p.toString(),doc);
+                imgH = imgW*img.getHeight()/img.getWidth();
+                cs.drawImage(img,xx,y-imgH,imgW,imgH);
+            }catch(Exception ex){
+                log.debug("PDF | no se pudo insertar {} ({})",p,ex.getMessage());
+            }
+            xx+=imgW+gap;
         }
         return y-imgH-5;
     }
 
     private void drawWorkouts(PDPageContentStream cs,List<DailyEntry> wos,
-                              float x,float y)throws Exception{
+                              float x,float y) throws Exception{
 
         cs.beginText(); cs.setFont(PDType1Font.HELVETICA_BOLD,14);
         cs.newLineAtOffset(x,y); cs.showText("Histórico de entrenos");
@@ -184,12 +194,12 @@ public class PdfService {
         cs.setFont(PDType1Font.HELVETICA_BOLD,11);
         cs.beginText(); cs.newLineAtOffset(x+10,y); cs.showText("Fecha"); cs.endText();
         cs.beginText(); cs.newLineAtOffset(x+70,y); cs.showText("Máquina"); cs.endText();
-        cs.beginText(); cs.newLineAtOffset(x+270,y);cs.showText("Kg / Reps x Sets");cs.endText();
+        cs.beginText(); cs.newLineAtOffset(x+270,y); cs.showText("Kg / Reps x Sets"); cs.endText();
         y-=14; cs.setFont(PDType1Font.HELVETICA,10);
 
         DateTimeFormatter df=DateTimeFormatter.ISO_DATE;
-        for (DailyEntry e:wos){
-            for (DailyEntry.Exercise ex:e.getDetails().values()){
+        for(DailyEntry e:wos){
+            for(DailyEntry.Exercise ex:e.getDetails().values()){
                 cs.beginText(); cs.newLineAtOffset(x+10,y); cs.showText(df.format(e.getDate())); cs.endText();
                 cs.beginText(); cs.newLineAtOffset(x+70,y); cs.showText(ex.getName()); cs.endText();
                 cs.beginText(); cs.newLineAtOffset(x+270,y);
@@ -203,7 +213,7 @@ public class PdfService {
     private static String nf(Double d){ return d==null? "—" : String.format("%.1f",d); }
     private static String imgLabel(BodyStats s){
         return (s.getFrontImgUrl()!=null?"✔":"—")+" / "
-                + (s.getSideImgUrl()!=null ?"✔":"—")+" / "
-                + (s.getBackImgUrl()!=null ?"✔":"—");
+                +(s.getSideImgUrl()!=null ?"✔":"—")+" / "
+                +(s.getBackImgUrl()!=null ?"✔":"—");
     }
 }
