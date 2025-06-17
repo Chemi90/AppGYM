@@ -9,18 +9,15 @@ const TOKEN_KEY = "gym_token";
    HELPERS
    ========================================================================= */
 const qs     = (sel, el = document) => el.querySelector(sel);
-const create = (tag, cls = "") => {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  return e;
-};
+const create = (tag, cls = "") => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
+
 const authHeaders = () => ({
   "Content-Type": "application/json",
   Authorization  : `Bearer ${localStorage.getItem(TOKEN_KEY)}`
 });
 
 /* =========================================================================
-   ROUTING (index ↔ dashboard)
+   ROUTING
    ========================================================================= */
 if (location.pathname.endsWith("/index.html") || location.pathname === "/") {
   authPage();
@@ -35,25 +32,21 @@ function authPage() {
   const form    = qs("#auth-form");
   const confirm = qs("#confirm");
   const toggle  = qs("#toggle-link");
-  let mode      = "login";
+  let mode = "login";
 
   toggle.onclick = e => { e.preventDefault(); swap(); };
 
   function swap() {
     mode = mode === "login" ? "register" : "login";
     confirm.classList.toggle("hidden", mode === "login");
-    qs("#form-title").textContent = mode === "login" ? "Iniciar sesión"
-                                                    : "Crear cuenta";
-    qs("#submit-btn").textContent = mode === "login" ? "Entrar"
-                                                    : "Registrar";
+    qs("#form-title").textContent = mode === "login" ? "Iniciar sesión" : "Crear cuenta";
+    qs("#submit-btn").textContent = mode === "login" ? "Entrar" : "Registrar";
   }
 
   form.onsubmit = async e => {
     e.preventDefault();
-    const body = {
-      email   : form.email.value,
-      password: form.password.value
-    };
+
+    const body = { email: form.email.value, password: form.password.value };
     if (mode === "register") body.confirm = form.confirm.value;
 
     const res = await fetch(`${API_BASE}/api/auth/${mode}`, {
@@ -88,7 +81,7 @@ async function dashboard() {
   window.addEventListener("hashchange", render);
   render();
 
-  /* ------------- router interno ------------- */
+  /* -------- render según hash -------- */
   async function render() {
     const view = location.hash.slice(1) || "profile";
     container.innerHTML = "";
@@ -98,7 +91,7 @@ async function dashboard() {
     if (view === "stats")    statsView();
     if (view === "machines") machinesView();
     if (view === "daily")    dailyView();
-    if (view === "reports")  reports();
+    if (view === "reports")  reportsView();
   }
 
   /* -----------------------------------------------------------------------
@@ -109,21 +102,24 @@ async function dashboard() {
     const data = await res.json();
     const form = qs("#profile-form");
 
-    /* rellenar (solo los campos presentes) */
-    [
-      "firstName","lastName","age","height","weight",
-      "neck","chest","waist","lowerAbs","hip",
-      "biceps","bicepsFlex","forearm","thigh","calf"
-    ].forEach(k => { if (data[k+"Cm"] ?? data[k]) form[k].value = data[k+"Cm"] ?? data[k] });
+    /* rellenar inputs */
+    Object.entries({
+      firstName     : data.firstName,
+      lastName      : data.lastName,
+      age           : data.age,
+      height        : data.heightCm,
+      weight        : data.weightKg
+    }).forEach(([id, val]) => { if (val !== null) form[id].value = val; });
 
+    /* guardar */
     form.onsubmit = async e => {
       e.preventDefault();
       const body = {
-        firstName  : form.firstName.value,
-        lastName   : form.lastName.value,
-        age        : +form.age.value,
-        heightCm   : +form.height.value,
-        weightKg   : +form.weight.value
+        firstName : form.firstName.value,
+        lastName  : form.lastName.value,
+        age       : +form.age.value,
+        heightCm  : +form.height.value,
+        weightKg  : +form.weight.value
       };
       await fetch(`${API_BASE}/api/profile`, {
         method : "PUT",
@@ -135,94 +131,79 @@ async function dashboard() {
   }
 
   /* -----------------------------------------------------------------------
-     STATS  (MEDIDAS + FOTOS)
+     STATS  (medidas + fotos)
      ----------------------------------------------------------------------- */
   async function statsView() {
-    const form = qs("#stats-form");
-    const today = new Date().toISOString().slice(0,10);
-    qs("#stats-date").value = today;                        // por defecto hoy
+    const form      = qs("#stats-form");
+    form["stats-date"].value = new Date().toISOString().slice(0,10);
 
-    /* -------- carga última medición -------- */
-    const last = await fetch(`${API_BASE}/api/stats`, { headers: authHeaders() })
-                        .then(r => r.ok ? r.json() : null)
-                        .catch(()=>null);
-    if (last) {
-      const map = {
-        weightKg    :"stats-weight",
-        neckCm      :"stats-neck",
-        chestCm     :"stats-chest",
-        waistCm     :"stats-waist",
-        lowerAbsCm  :"stats-lowerAbs",
-        hipCm       :"stats-hip",
-        bicepsCm    :"stats-biceps",
-        bicepsFlexCm:"stats-bicepsFlex",
-        forearmCm   :"stats-forearm",
-        thighCm     :"stats-thigh",
-        calfCm      :"stats-calf"
-      };
-      Object.entries(map).forEach(([k,id])=>{
-        if (last[k] != null) form[id].value = last[k];
-      });
-    }
-
-    /* -------- guardar -------- */
     form.onsubmit = async e => {
       e.preventDefault();
 
-      /* ―― JSON de medidas ―― */
-      const jsonBody = {
+      /* ---------- JSON con medidas ---------- */
+      const body = {
         date        : form["stats-date"].value,
-        weightKg    : +form["stats-weight"].value    || null,
-        neckCm      : +form["stats-neck"].value      || null,
-        chestCm     : +form["stats-chest"].value     || null,
-        waistCm     : +form["stats-waist"].value     || null,
-        lowerAbsCm  : +form["stats-lowerAbs"].value  || null,
-        hipCm       : +form["stats-hip"].value       || null,
-        bicepsCm    : +form["stats-biceps"].value    || null,
-        bicepsFlexCm: +form["stats-bicepsFlex"].value|| null,
-        forearmCm   : +form["stats-forearm"].value   || null,
-        thighCm     : +form["stats-thigh"].value     || null,
-        calfCm      : +form["stats-calf"].value      || null
+        weightKg    : nf(form["stats-weight"].value),
+        waistCm     : nf(form["stats-waist"].value),
+        hipCm       : nf(form["stats-hip"].value),
+        thighCm     : nf(form["stats-thigh"].value),
+        bicepsCm    : nf(form["stats-biceps"].value),
+        neckCm      : nf(form["stats-neck"].value),
+        chestCm     : nf(form["stats-chest"].value),
+        lowerAbsCm  : nf(form["stats-lowerAbs"].value),
+        bicepsFlexCm: nf(form["stats-bicepsFlex"].value),
+        forearmCm   : nf(form["stats-forearm"].value),
+        calfCm      : nf(form["stats-calf"].value)
       };
 
-      /* medida */
-      const res = await fetch(`${API_BASE}/api/stats`, {
+      await fetch(`${API_BASE}/api/stats`, {
         method : "POST",
         headers: authHeaders(),
-        body   : JSON.stringify(jsonBody)
+        body   : JSON.stringify(body)
       });
-      if (!res.ok) return alert("Error al guardar medidas");
 
-      /* fotos (si las hay) */
+      /* ---------- fotos (si se seleccionaron) ---------- */
       const photos = [
         { id:"stats-front", type:"FRONT" },
         { id:"stats-side" , type:"SIDE"  },
         { id:"stats-back" , type:"BACK"  }
       ];
-      for (const p of photos){
+      for (const p of photos) {
         const file = form[p.id].files[0];
         if (!file) continue;
+
         const fd = new FormData();
         fd.append("type", p.type);
         fd.append("file", file);
-        await fetch(`${API_BASE}/api/photos`, {
+
+        const resp = await fetch(`${API_BASE}/api/photos`, {
           method : "POST",
           headers: { "Authorization": authHeaders().Authorization },
           body   : fd
         });
+
+        console.log(`[PHOTO] ${p.type} → status=${resp.status}`);
+        if (!resp.ok) {
+          const txt = await resp.text().catch(()=>"(sin cuerpo)");
+          console.error("ERROR-PHOTO", txt);
+          alert("Error subiendo foto ("+p.type+")");
+        }
       }
-      alert("Medidas/fotos guardadas");
+      alert("Medidas/fotos guardadas.");
       form.reset();
-      qs("#stats-date").value = today;
     };
   }
+
+  /* utils num */
+  function nf(v){ return v===""? null : +v; }
 
   /* -----------------------------------------------------------------------
      MACHINES
      ----------------------------------------------------------------------- */
   async function machinesView() {
     const table = qs("#machine-table");
-    renderRows(await fetchList());
+    const list  = await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json();
+    renderRows(list);
 
     const form = qs("#machine-form");
     form.onsubmit = async e => {
@@ -239,21 +220,18 @@ async function dashboard() {
         body   : JSON.stringify(body)
       });
       form.reset();
-      renderRows(await fetchList());
+      renderRows(await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json());
     };
 
-    async function fetchList(){
-      return await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json();
-    }
     function renderRows(rows) {
       table.innerHTML = "";
       rows.forEach(m => {
         const tr = create("tr");
         tr.innerHTML =
-          `<td>${m.name}</td>\
-           <td>${m.weightKg ?? "-"}</td>\
-           <td>${m.reps ?? "-"}</td>\
-           <td>${m.sets ?? "-"}</td>\
+          `<td>${m.machine.name}</td>\
+           <td>${m.weightKg}</td>\
+           <td>${m.reps}</td>\
+           <td>${m.sets}</td>\
            <td class="text-right"><button data-id="${m.id}" class="btn-danger">×</button></td>`;
         table.appendChild(tr);
         tr.querySelector("button").onclick = async () => {
@@ -275,62 +253,60 @@ async function dashboard() {
     const container = qs("#daily-machines");
     container.innerHTML = "";
     machines.forEach(m => {
-      const row = create("div","flex gap-2");
-      row.innerHTML = `<span class="flex-1">${m.name}</span>\
-        <input type="number" class="input w-24" value="${m.weightKg ?? 0}" data-id="${m.id}">\
-        <input type="number" class="input w-16" value="${m.reps    ?? 0}" data-r="reps">\
-        <input type="number" class="input w-16" value="${m.sets    ?? 0}" data-r="sets">`;
-      container.appendChild(row);
+      const div = create("div","flex gap-2");
+      div.innerHTML = `<span class="flex-1">${m.machine.name}</span>\
+        <input type="number" class="input w-24" value="${m.weightKg}" data-id="${m.machine.id}">\
+        <input type="number" class="input w-16" value="${m.reps}"      data-r="reps">\
+        <input type="number" class="input w-16" value="${m.sets}"      data-r="sets">`;
+      container.appendChild(div);
     });
 
-    qs("#daily-form").onsubmit = async e => {
+    const form = qs("#daily-form");
+    form.onsubmit = async e => {
       e.preventDefault();
-      const exercises = [];
+      const details = {};
       container.querySelectorAll("div").forEach(row => {
-        exercises.push({
-          name     : row.children[0].textContent.trim(),
-          weightKg : +row.querySelector("[data-id]").value,
-          reps     : +row.querySelector("[data-r='reps']").value,
-          sets     : +row.querySelector("[data-r='sets']").value
-        });
+        const id   = row.querySelector("[data-id]").dataset.id;
+        const kg   = +row.querySelector("[data-id]").value;
+        const reps = +row.querySelector("[data-r='reps']").value;
+        const sets = +row.querySelector("[data-r='sets']").value;
+        details[id] = { weightKg: kg, reps, sets };
       });
       await fetch(`${API_BASE}/api/daily`, {
         method : "POST",
         headers: authHeaders(),
-        body   : JSON.stringify({ date: dateInput.value, exercises })
+        body   : JSON.stringify({ date: dateInput.value, exercises: Object.values(details) })
       });
-      alert("Registro diario guardado");
+      alert("Registro guardado");
     };
   }
 
   /* -----------------------------------------------------------------------
-     REPORTS – descarga PDF
+     REPORTS
      ----------------------------------------------------------------------- */
-  function reports() {
-    const fullBtn  = qs("#full-pdf");
-    const rangeBtn = qs("#range-pdf");
+  function reportsView(){
+    const fullBtn   = qs("#full-pdf");
+    const rangeBtn  = qs("#range-pdf");
 
-    if (fullBtn)
-      fullBtn.onclick = () =>
-        download(`${API_BASE}/api/report/full`, "progreso.pdf");
+    fullBtn.onclick = () =>
+      download(`${API_BASE}/api/report/full`, "progreso.pdf");
 
-    if (rangeBtn)
-      rangeBtn.onclick = () => {
-        const f = qs("#from").value, t = qs("#to").value;
-        if (!f || !t) return alert("Seleccione ambas fechas");
-        download(`${API_BASE}/api/report/period?from=${f}&to=${t}`,
-                 `progreso_${f}_${t}.pdf`);
-      };
+    rangeBtn.onclick = () => {
+      const f = qs("#from").value, t = qs("#to").value;
+      if (!f || !t) return alert("Seleccione ambas fechas");
+      download(`${API_BASE}/api/report/period?from=${f}&to=${t}`,
+               `progreso_${f}_${t}.pdf`);
+    };
   }
 
-  /* helper descarga con token query-string */
-  function download(url, filename) {
+  /* ---------- descarga con token en query-string ---------- */
+  function download(url, filename){
     const token = localStorage.getItem(TOKEN_KEY);
     const href  = `${url}${url.includes("?")?"&":"?"}token=${token}`;
     window.open(href, "_blank");
   }
 
-  /* logout */
+  /* ---------- logout ---------- */
   qs("#logout").onclick = () => {
     localStorage.removeItem(TOKEN_KEY);
     location.href = "index.html";
