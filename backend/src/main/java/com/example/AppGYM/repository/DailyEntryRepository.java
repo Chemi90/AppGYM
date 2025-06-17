@@ -11,10 +11,8 @@ public interface DailyEntryRepository extends JpaRepository<DailyEntry, Long> {
 
     /*  ─── EXISTENTES ─── */
     List<DailyEntry> findByUserIdOrderByDateAsc(Long userId);
-    List<DailyEntry> findByUserIdAndDateBetweenOrderByDateAsc(Long userId,
-                                                              LocalDate from,
-                                                              LocalDate to);
 
+    List<DailyEntry> findByUserIdAndDateBetweenOrderByDateAsc(Long id, LocalDate f, LocalDate t);
     /*  ─── NUEVO  (lo pide DailyEntryController) ─── */
     Optional<DailyEntry> findByUserIdAndDate(Long userId, LocalDate date);
 }

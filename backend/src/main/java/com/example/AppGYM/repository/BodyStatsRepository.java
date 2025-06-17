@@ -24,4 +24,5 @@ public interface BodyStatsRepository extends JpaRepository<BodyStats, Long> {
 
     /* ===== método que reclamaba PdfService ===== */
     List<BodyStats> findByUserIdOrderByDateAsc(Long userId);
+
 }
