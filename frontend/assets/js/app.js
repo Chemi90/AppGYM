@@ -13,8 +13,7 @@ const qs     = (sel, el = document) => el.querySelector(sel);
 const create = (tag, cls = "") => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
 
 const authHeaders = () => ({
-  "Content-Type": "application/json",
-  Authorization  : `Bearer ${localStorage.getItem(TOKEN_KEY)}`
+  "Authorization": `Bearer ${localStorage.getItem(TOKEN_KEY)}`
 });
 
 /* ---------------------------------------------------------------- ROUTING */
@@ -85,7 +84,7 @@ async function dashboard() {
     const view = location.hash.slice(1) || "profile";
     container.innerHTML = "";
     const frag = templates[view].content.cloneNode(true);
-    frag.firstElementChild?.classList.add("fade-in");   // animación
+    frag.firstElementChild?.classList.add("fade-in");
     container.appendChild(frag);
 
     if (view === "profile")  profileView();
@@ -103,16 +102,14 @@ async function dashboard() {
     const data = await res.json();
     const form = qs("#profile-form");
 
-    /* rellenar inputs */
     Object.entries({
-      firstName     : data.firstName,
-      lastName      : data.lastName,
-      age           : data.age,
-      height        : data.heightCm,
-      weight        : data.weightKg
+      firstName: data.firstName,
+      lastName : data.lastName,
+      age      : data.age,
+      height   : data.heightCm,
+      weight   : data.weightKg
     }).forEach(([id, val]) => { if (val !== null) form[id].value = val; });
 
-    /* guardar */
     form.onsubmit = async e => {
       e.preventDefault();
       const body = {
@@ -124,7 +121,7 @@ async function dashboard() {
       };
       await fetch(`${API_BASE}/api/profile`, {
         method : "PUT",
-        headers: authHeaders(),
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
         body   : JSON.stringify(body)
       });
       alert("Perfil actualizado");
@@ -135,12 +132,11 @@ async function dashboard() {
      STATS  (medidas)
      --------------------------------------------------------------------- */
   async function statsView() {
-    const form      = qs("#stats-form");
+    const form = qs("#stats-form");
     form["stats-date"].value = new Date().toISOString().slice(0,10);
 
     form.onsubmit = async e => {
       e.preventDefault();
-
       const body = {
         date        : form["stats-date"].value,
         weightKg    : nf(form["stats-weight"].value),
@@ -158,7 +154,7 @@ async function dashboard() {
 
       await fetch(`${API_BASE}/api/stats`, {
         method : "POST",
-        headers: authHeaders(),
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
         body   : JSON.stringify(body)
       });
 
@@ -166,9 +162,7 @@ async function dashboard() {
       form.reset();
     };
   }
-
-  /* utils num */
-  function nf(v){ return v === "" ? null : +v; }
+  const nf = v => v === "" ? null : +v;
 
   /* ---------------------------------------------------------------------
      MACHINES
@@ -189,7 +183,7 @@ async function dashboard() {
       };
       await fetch(`${API_BASE}/api/machines`, {
         method : "POST",
-        headers: authHeaders(),
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
         body   : JSON.stringify(body)
       });
       form.reset();
@@ -216,7 +210,7 @@ async function dashboard() {
   }
 
   /* ---------------------------------------------------------------------
-     DAILY  (registro diario) · FIX: envía name para evitar 403
+     DAILY  (registro diario)
      --------------------------------------------------------------------- */
   async function dailyView() {
     const dateInput = qs("#entry-date");
@@ -238,8 +232,6 @@ async function dashboard() {
     const form = qs("#daily-form");
     form.onsubmit = async e => {
       e.preventDefault();
-
-      /* ----------- array completo que incluye nombre ----------- */
       const exercises = [];
       container.querySelectorAll("div").forEach(row => {
         exercises.push({
@@ -252,7 +244,7 @@ async function dashboard() {
 
       await fetch(`${API_BASE}/api/daily`, {
         method : "POST",
-        headers: authHeaders(),
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
         body   : JSON.stringify({ date: dateInput.value, exercises })
       });
 
@@ -261,11 +253,11 @@ async function dashboard() {
   }
 
   /* ---------------------------------------------------------------------
-     REPORTS (PDF)
+     REPORTS  (PDF completo / intervalo)  · FIX 403
      --------------------------------------------------------------------- */
   function reportsView(){
-    const fullBtn   = qs("#full-pdf");
-    const rangeBtn  = qs("#range-pdf");
+    const fullBtn  = qs("#full-pdf");
+    const rangeBtn = qs("#range-pdf");
 
     fullBtn.onclick  = () =>
       download(`${API_BASE}/api/report/full`, "progreso.pdf");
@@ -278,11 +270,33 @@ async function dashboard() {
     };
   }
 
-  /* --------------- descarga con token en query-string --------------- */
-  function download(url, filename){
-    const token = localStorage.getItem(TOKEN_KEY);
-    const href  = `${url}${url.includes("?") ? "&" : "?"}token=${token}`;
-    window.open(href, "_blank");
+  /**
+   * Descarga con fetch (cabecera Authorization) y abre el PDF
+   * en una pestaña nueva.  Evita el 403 que provocaba window.open.
+   */
+  async function download(url, filename){
+    const res = await fetch(url, { headers: authHeaders() });
+    if (!res.ok){
+      const txt = await res.text();
+      return alert(`Error ${res.status} – ${txt}`);
+    }
+    const blob = await res.blob();
+    const href = URL.createObjectURL(blob);
+
+    /* abrir en nueva pestaña */
+    const win = window.open(href, "_blank");
+    /* forzar descarga (opcional) */
+    const a = create("a");
+    a.href = href;
+    a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(href);
+      if (win) win.focus();
+    }, 200);
   }
 
   /* ------------------------------ logout ----------------------------- */
