@@ -1,4 +1,3 @@
-// backend/src/main/java/com/example/AppGYM/service/PdfService.java
 package com.example.AppGYM.service;
 
 import com.example.AppGYM.model.BodyStats;
@@ -39,18 +38,37 @@ public class PdfService {
 
     /* ───────── generador ───────── */
 
+    /**
+     * Si {@code from/to} se reciben <code>null</code>, se genera el PDF completo.
+     * De lo contrario se filtran **tanto** las mediciones corporales como los
+     * entrenos al intervalo indicado (fechas inclusivas).
+     */
     private byte[] build(User u, LocalDate from, LocalDate to){
 
-        List<BodyStats> hist   = statsRepo.findByUserIdOrderByDateAsc(u.getId());
-        BodyStats       actual = statsRepo.findTopByUserIdOrderByDateDesc(u.getId()).orElse(null);
+        /* ------------------------------------------------------------
+           1) Datos filtrados (histórico + entrenos) según el rango
+           ------------------------------------------------------------ */
+        boolean filter = (from != null && to != null);
 
-        List<DailyEntry> wos = (from==null||to==null)
-                ? dailyRepo.findByUserIdOrderByDateAsc(u.getId())
-                : dailyRepo.findByUserIdAndDateBetweenOrderByDateAsc(u.getId(),from,to);
+        List<BodyStats> hist = filter
+                ? statsRepo.findByUserIdAndDateBetweenOrderByDateAsc(u.getId(), from, to)
+                : statsRepo.findByUserIdOrderByDateAsc(u.getId());
 
-        log.debug("PDF | usr={}, current={}, history={}, workouts={}",
-                u.getEmail(), actual!=null, hist.size(), wos.size());
+        /* “Medidas actuales” = la última del intervalo (o global si no hay filtro) */
+        BodyStats actual = hist.isEmpty() ? null : hist.get(hist.size() - 1);
 
+        List<DailyEntry> wos = filter
+                ? dailyRepo.findByUserIdAndDateBetweenOrderByDateAsc(u.getId(), from, to)
+                : dailyRepo.findByUserIdOrderByDateAsc(u.getId());
+
+        log.debug("PDF | usr={}, rango={}, hist.size={}, wos.size={}",
+                u.getEmail(),
+                filter ? from + " → " + to : "completo",
+                hist.size(), wos.size());
+
+        /* ------------------------------------------------------------
+           2) Construcción del PDF
+           ------------------------------------------------------------ */
         try (PDDocument pdf = new PDDocument()){
 
             PDPage page = new PDPage(PDRectangle.LETTER);
