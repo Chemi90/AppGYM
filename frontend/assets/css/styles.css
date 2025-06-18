@@ -1,72 +1,68 @@
 /* =========================================================================
-   GYM-TRACKER  ·  hoja de estilos global  (2025 responsive refresh)
-   ──────────────────────────────────────────────────────────────────────
-   · Mobile-first (base = ≤480 px)
-   · Breakpoints:
-       -- sm  : 481-640 px   (sm-mobile / phablet)
-       -- md  : 641-1024 px  (tablet)
-       -- lg  : 1025-1439 px (laptop / desktop)
-       -- xl  : ≥1440 px     (wide / 4K)
-       -- fold: dispositivo con bisagra vertical  (spanning)
-   · Mantiene todas las clases del proyecto original y añade utilidades
-     nuevas (fw-bold, text-center, grid-auto, gap-x-4, …)
+   GYM-TRACKER · Hoja de estilos 2025 · v2
+   Re-responsive  •  Centered Layout  •  Micro-animations  •  SEO friendly
    ======================================================================= */
 
 /* ---------------------------  RESET LIGERO  --------------------------- */
 *,
 *::before,
-*::after { box-sizing:border-box; margin:0; padding:0; }
-body     { line-height:1.5; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
-img,
-svg,
-video,
-canvas { max-width:100%; display:block; }
+*::after{box-sizing:border-box;margin:0;padding:0;}
+body{line-height:1.5;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+img,svg,video,canvas{max-width:100%;display:block;}
 
-/* -----------------------  VARIABLES - MODO CLARO ---------------------- */
+/* ----------------------------  VARIABLES  ---------------------------- */
 :root{
-  --h-header : 3.5rem;               /* altura navbar en desktop */
+  --h-header : 3.5rem;             /* altura navbar desktop               */
   --radius   : 12px;
-  --shadow   : 0 6px 14px rgb(0 0 0 / .15);
+  --shadow   : 0 6px 14px rgb(0 0 0 / .12);
+  --dur      : .25s;               /* duración animaciones base           */
 
-  /* Paleta clara ------------------------------------------------------- */
-  --c-bg-start  : #2b2a82;
-  --c-bg-end    : #6a1bff;
-  --c-surface   : #ffffff;
-  --c-surface-alt:#f0f4ff;
-  --c-text      : #1e293b;
-  --c-text-inv  : #f1f5f9;
-  --c-primary   : #8b5cf6;
-  --c-primary-h : #7c3aed;
-  --c-danger    : #dc2626;
-  --c-danger-h  : #b91c1c;
+  /* Paleta (claro) ---------------------------------------------------- */
+  --c-gradient-s:#2b2a82;
+  --c-gradient-e:#6a1bff;
+  --c-surface  :#ffffff;
+  --c-surface2 :#f0f4ff;
+  --c-text     :#1e293b;
+  --c-text-inv :#f1f5f9;
+  --c-primary  :#8b5cf6;
+  --c-primary-h:#7c3aed;
+  --c-danger   :#dc2626;
+  --c-danger-h :#b91c1c;
 }
-
-/* -----------------------  VARIABLES - MODO OSCURO --------------------- */
-@media (prefers-color-scheme:dark){
+@media(prefers-color-scheme:dark){
   :root{
-    --c-bg-start  : #16184b;
-    --c-bg-end    : #402ca0;
-    --c-surface   : #1e2537;
-    --c-surface-alt:#24304c;
-    --c-text      : #e2e8f0;
+    --c-gradient-s:#16184b;
+    --c-gradient-e:#402ca0;
+    --c-surface  :#1e2537;
+    --c-surface2 :#24304c;
+    --c-text     :#e2e8f0;
   }
 }
 
-/* ----------------------------  BASE LAYOUT  --------------------------- */
-html,
-body { min-height:100%; }
+/* ----------------------------  LAYOUT BASE  -------------------------- */
+html,body{min-height:100%;}
 body{
-  background:linear-gradient(135deg,var(--c-bg-start),var(--c-bg-end));
+  background:linear-gradient(135deg,var(--c-gradient-s),var(--c-gradient-e));
   color:var(--c-text);
   display:flex;
   flex-direction:column;
+  padding-top:env(safe-area-inset-top);
 }
 
-/* -------------------------  COMPONENTES UI  --------------------------- */
-/* Inputs & botones ----------------------------------------------------- */
+/*  Centra cualquier vista (> 640 px)  */
+#view-container > *{
+  width:100%;
+  max-width:1200px;
+  margin-inline:auto;
+}
+
+/* Transition común  --------------------------------------------------- */
+a,button,input,select,th,td{transition:background var(--dur),color var(--dur);}
+
+/* -------------------------  COMPONENTES UI  -------------------------- */
 .input{
   width:100%;
-  padding:.5rem .75rem;
+  padding:.55rem .75rem;
   border:1px solid #cbd5e1;
   border-radius:.5rem;
   background:var(--c-surface);
@@ -75,199 +71,150 @@ body{
 .btn{
   background:var(--c-primary);
   color:#fff;
-  padding:.5rem 1.25rem;
+  padding:.55rem 1.25rem;
   border:none;
   border-radius:.5rem;
   cursor:pointer;
-  transition:background .2s;
+  font-weight:600;
 }
-.btn:hover{ background:var(--c-primary-h); }
+.btn:hover{background:var(--c-primary-h);}
 .btn-danger{
   background:var(--c-danger);
   color:#fff;
-  padding:.35rem .8rem;
-  border-radius:.35rem;
-  cursor:pointer;
+  padding:.4rem .9rem;
+  border-radius:.4rem;
 }
-.btn-danger:hover{ background:var(--c-danger-h); }
+.btn-danger:hover{background:var(--c-danger-h);}
+.btn-icon{padding:.35rem .55rem;line-height:1;}
+a{color:inherit;text-decoration:none;}
+.title{font-size:1.6rem;font-weight:700;margin-bottom:1.5rem;}
 
-/* Links, títulos ------------------------------------------------------- */
-a{ color:inherit; text-decoration:none; }
-.title{ font-size:1.5rem; font-weight:700; margin-bottom:1.5rem; }
-
-/* Navbar --------------------------------------------------------------- */
+/* Navbar -------------------------------------------------------------- */
 .navbar{
   position:sticky;
   top:0;
   z-index:100;
-  backdrop-filter:blur(6px);
-  background:rgba(0,0,0,.15);
-  height:var(--h-header);
+  height:auto;                      /* adaptable al wrap                  */
   display:flex;
   align-items:center;
-  justify-content:space-between;
   gap:1rem;
-  padding:0 1rem;
-  box-shadow:0 1px 4px rgb(0 0 0 / .2);
+  padding:.6rem 1rem;
+  backdrop-filter:blur(8px);
+  background:rgba(0,0,0,.15);
+  box-shadow:0 1px 4px rgb(0 0 0 /.2);
 }
-.brand{ font-weight:700; color:var(--c-text-inv); }
+.brand{font-weight:700;color:var(--c-text-inv);}
 .tabs{
   display:flex;
   gap:.5rem;
   flex-wrap:wrap;
+  flex:1 1 auto;                   /* empuja el botón salir a la dcha     */
+  justify-content:center;
 }
 .tab{
-  padding:.5rem .75rem;
+  padding:.45rem .75rem;
   border-radius:.5rem;
   color:var(--c-text-inv);
-  transition:background .2s;
 }
-.tab:hover{ background:rgba(255,255,255,.15); }
+.tab:hover{background:rgba(255,255,255,.15);}
+.btn-logout{margin-left:auto;}     /* evita solape con tabs en móvil      */
 
-/* Contenedor de vistas dinámicas -------------------------------------- */
+/* Contenedor de vistas ------------------------------------------------ */
 #view-container{
   flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:1.75rem;
   padding:1.25rem;
-  display:grid;
-  gap:1.5rem;
 }
 
-/* Tables --------------------------------------------------------------- */
+/* Tables -------------------------------------------------------------- */
 table{
   width:100%;
   border-collapse:collapse;
   background:var(--c-surface);
   border-radius:var(--radius);
   overflow:hidden;
+  box-shadow:var(--shadow);
   color:var(--c-text);
+  font-size:.95rem;
 }
-thead{ background:rgba(0,0,0,.05); }
-th,td{ padding:.65rem .75rem; text-align:left; }
-tbody tr:nth-child(odd){
-  background:var(--c-surface-alt);
-}
-/* Oscuro */
-@media (prefers-color-scheme:dark){
-  thead{ background:rgba(255,255,255,.05); }
+thead{background:rgba(0,0,0,.05);}
+th,td{padding:.65rem .75rem;text-align:left;}
+tbody tr:nth-child(odd){background:var(--c-surface2);}
+tbody tr{transition:background var(--dur);}
+tbody tr:hover{background:rgba(0,0,0,.04);}
+@media(prefers-color-scheme:dark){
+  thead{background:rgba(255,255,255,.05);}
 }
 
-/* Card / contenedor ---------------------------------------------------- */
+/* Card contenedor (login) -------------------------------------------- */
 .container{
-  max-width:24rem;
   width:100%;
+  max-width:26rem;
+  margin:auto;
   background:#1e293b;
   color:#f8fafc;
   padding:2rem;
   border-radius:1rem;
   box-shadow:var(--shadow);
-  margin:auto;
 }
 
-/* Animación fade-in ---------------------------------------------------- */
-@keyframes fade{
-  from{ opacity:0; transform:translateY(10px); }
-  to  { opacity:1; transform:none; }
+/* ----------------------  ANIMACIONES CLAVE  ------------------------- */
+@keyframes fade-up{
+  from{opacity:0;transform:translateY(12px);}
+  to{opacity:1;transform:none;}
 }
-.fade-in{ animation:fade .35s ease-out both; }
+.fade-in{animation:fade-up .4s cubic-bezier(.25,.8,.25,1) both;}
+tbody tr{animation:fade-up .3s ease-out both;animation-delay:.1s;}
+.tab,button{will-change:transform;}
+button:active{transform:scale(.96);}
 
-/* ------------------------------  UTILIDADES  -------------------------- */
-.hidden{ display:none!important; }
-/* “tailwind-like” extra */
-.bg-white   { background:#ffffff!important; }
-.shadow     { box-shadow:var(--shadow)!important; }
-.rounded-xl { border-radius:calc(var(--radius) + 6px)!important; }
-/* Tipografía */
-.fw-bold    { font-weight:700; }
-.text-center{ text-align:center; }
-/* Grid utils */
-.grid-auto  { display:grid; grid-auto-flow:column; }
-.gap-x-4    { column-gap:1rem; }
+/* -------------------------  UTILIDADES VARIAS ----------------------- */
+.hidden{display:none!important;}
+.grid-auto{display:grid;grid-auto-flow:column;}
+.text-center{text-align:center;}
+.bg-white{background:#ffffff!important;}
+.shadow{box-shadow:var(--shadow)!important;}
 
 /* =========================================================================
    BREAKPOINTS
    ========================================================================= */
-
-/* ---------- SM  ·  481-640 px  --------------------------------------- */
-@media (min-width:481px){
-  .navbar{ padding:0 1.25rem; height:calc(var(--h-header) + .25rem); }
-  .tab{ padding:.55rem .85rem; font-size:.95rem; }
-  .btn{ padding:.55rem 1.35rem; }
-}
-
-/* ---------- MD  ·  641-1024 px (tablet) ------------------------------ */
-@media (min-width:641px){
-  #view-container{
-    padding:1.75rem 2rem;
-    grid-template-columns:repeat(auto-fit,minmax(22rem,1fr));
-  }
-  .container{ max-width:28rem; }
-  .navbar{ padding:0 1.5rem; }
-  .tab{ padding:.6rem 1rem; font-size:1rem; }
-  .title{ font-size:1.75rem; }
-}
-
-/* ---------- LG  ·  1025-1439 px (laptop / desktop) ------------------- */
-@media (min-width:1025px){
-  #view-container{ grid-template-columns:repeat(auto-fit,minmax(24rem,1fr)); }
-  .navbar{ height:4rem; padding:0 2rem; }
-  .tab{ padding:.65rem 1.1rem; font-size:1.05rem; }
-  .btn{ padding:.65rem 1.55rem; }
-  table th,table td{ padding:.75rem .9rem; }
-  .title{ font-size:1.9rem; }
-}
-
-/* ---------- XL  ·  ≥1440 px (wide / 4K) ------------------------------ */
-@media (min-width:1440px){
-  #view-container{ padding:2rem 3rem; gap:2rem; }
-  .tab{ padding:.7rem 1.3rem; font-size:1.1rem; }
-  .title{ font-size:2.1rem; }
-}
-
-/* =========================================================================
-   FOLDABLES  ·  single-fold vertical hinge
-   “spanning: single-fold-vertical” → divide en 2 columnas iguales
-   ========================================================================= */
-@media (spanning: single-fold-vertical){
-  body{
-    padding-left:env(fold-left);
-    padding-right:env(fold-right);
-  }
-  #view-container{
-    grid-template-columns:1fr 1fr;
-    column-gap:calc(env(fold-right) - env(fold-left) + 1rem);
-  }
-  .navbar{
-    justify-content:center;
-    flex-wrap:wrap;
-    gap:.75rem 1rem;
-    height:auto;
-    padding:1rem;
-  }
-  .tabs{ justify-content:center; }
-  .tab{ padding:.6rem .9rem; }
-}
-
-/* =========================================================================
-   TABLE OPTIMIZACIONES  (column-hiding específicas)
-   ========================================================================= */
-
-/* < 640 px: oculta columnas reps/sets en tabla máquinas */
+/* ---------- SM · ≤640 px -------------------------------------------- */
 @media (max-width:640px){
-  table td:nth-child(3),
-  table td:nth-child(4),
-  table th:nth-child(3),
-  table th:nth-child(4){ display:none; }
+  .navbar{flex-wrap:wrap;justify-content:center;}
+  .btn-logout{order:3;width:100%;margin:0;padding:.5rem 0;}
+  .tabs{order:2;}
+  .brand{order:1;width:100%;text-align:center;}
+  .tab{padding:.4rem .7rem;font-size:.875rem;}
+  .btn{padding:.5rem 1.1rem;}
+  table td:nth-child(3),table td:nth-child(4),
+  table th:nth-child(3),table th:nth-child(4){display:none;}
 }
 
-/* < 480 px: ajusta tipografía y paddings aún más */
-@media (max-width:480px){
-  .navbar{ flex-direction:column; gap:.5rem; padding:.75rem 1rem; }
-  .tabs{ justify-content:center; }
-  .tab{ padding:.45rem .7rem; font-size:.875rem; }
-  .btn{ padding:.45rem 1rem; }
-  .input{ padding:.45rem .65rem; }
-  .title{ font-size:1.35rem; }
-  table th,table td{ padding:.55rem .5rem; font-size:.875rem; }
+/* ---------- MD · 641-1024 px ---------------------------------------- */
+@media (min-width:641px){
+  #view-container{padding:1.75rem 2rem;}
+  .title{font-size:1.8rem;}
+}
+
+/* ---------- LG · 1025-1439 px -------------------------------------- */
+@media (min-width:1025px){
+  #view-container{padding:2rem 3rem;}
+  .navbar{padding:.75rem 1.5rem;}
+  .title{font-size:1.9rem;}
+  table{font-size:1rem;}
+}
+
+/* ---------- XL · ≥1440 px ------------------------------------------ */
+@media (min-width:1440px){
+  .title{font-size:2rem;}
+}
+
+/* ---------- Foldables (vertical hinge) ----------------------------- */
+@media (spanning:single-fold-vertical){
+  body{padding-left:env(fold-left);padding-right:env(fold-right);}
+  #view-container{flex-direction:row;flex-wrap:wrap;column-gap:calc(env(fold-right)-env(fold-left));}
 }
 
 /* =========================================================================
