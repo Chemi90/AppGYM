@@ -1,13 +1,14 @@
 /* =========================================================================
-   CONFIG
+   GYM TRACKER · Front-end (Netlify)
+   Archivo: assets/js/app.js
    ========================================================================= */
+
+/* ------------------------------------------------------------------ CONFIG */
 const API_BASE  = import.meta?.env?.VITE_API_BASE
                || "https://appgym-production-64ac.up.railway.app";
 const TOKEN_KEY = "gym_token";
 
-/* =========================================================================
-   HELPERS
-   ========================================================================= */
+/* ---------------------------------------------------------------- HELPERS */
 const qs     = (sel, el = document) => el.querySelector(sel);
 const create = (tag, cls = "") => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
 
@@ -16,18 +17,16 @@ const authHeaders = () => ({
   Authorization  : `Bearer ${localStorage.getItem(TOKEN_KEY)}`
 });
 
-/* =========================================================================
-   ROUTING
-   ========================================================================= */
+/* ---------------------------------------------------------------- ROUTING */
 if (location.pathname.endsWith("/index.html") || location.pathname === "/") {
   authPage();
 } else {
   dashboard();
 }
 
-/* =========================================================================
-   AUTH PAGE
-   ========================================================================= */
+/* ========================================================================
+   1) AUTH PAGE
+   ======================================================================== */
 function authPage() {
   const form    = qs("#auth-form");
   const confirm = qs("#confirm");
@@ -63,9 +62,9 @@ function authPage() {
   };
 }
 
-/* =========================================================================
-   DASHBOARD
-   ========================================================================= */
+/* ========================================================================
+   2) DASHBOARD
+   ======================================================================== */
 async function dashboard() {
   if (!localStorage.getItem(TOKEN_KEY)) return location.href = "index.html";
 
@@ -81,13 +80,12 @@ async function dashboard() {
   window.addEventListener("hashchange", render);
   render();
 
-  /* -------- render según hash -------- */
+  /* -------------------------- render según hash ------------------------- */
   async function render() {
     const view = location.hash.slice(1) || "profile";
     container.innerHTML = "";
     const frag = templates[view].content.cloneNode(true);
-    /* ← animación de entrada */
-    frag.firstElementChild?.classList.add("fade-in");
+    frag.firstElementChild?.classList.add("fade-in");   // animación
     container.appendChild(frag);
 
     if (view === "profile")  profileView();
@@ -97,9 +95,9 @@ async function dashboard() {
     if (view === "reports")  reportsView();
   }
 
-  /* -----------------------------------------------------------------------
+  /* ---------------------------------------------------------------------
      PROFILE
-     ----------------------------------------------------------------------- */
+     --------------------------------------------------------------------- */
   async function profileView() {
     const res  = await fetch(`${API_BASE}/api/profile`, { headers: authHeaders() });
     const data = await res.json();
@@ -133,9 +131,9 @@ async function dashboard() {
     };
   }
 
-  /* -----------------------------------------------------------------------
+  /* ---------------------------------------------------------------------
      STATS  (medidas)
-     ----------------------------------------------------------------------- */
+     --------------------------------------------------------------------- */
   async function statsView() {
     const form      = qs("#stats-form");
     form["stats-date"].value = new Date().toISOString().slice(0,10);
@@ -143,7 +141,6 @@ async function dashboard() {
     form.onsubmit = async e => {
       e.preventDefault();
 
-      /* ---------- JSON con medidas ---------- */
       const body = {
         date        : form["stats-date"].value,
         weightKg    : nf(form["stats-weight"].value),
@@ -171,11 +168,11 @@ async function dashboard() {
   }
 
   /* utils num */
-  function nf(v){ return v===""? null : +v; }
+  function nf(v){ return v === "" ? null : +v; }
 
-  /* -----------------------------------------------------------------------
+  /* ---------------------------------------------------------------------
      MACHINES
-     ----------------------------------------------------------------------- */
+     --------------------------------------------------------------------- */
   async function machinesView() {
     const table = qs("#machine-table");
     const list  = await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json();
@@ -218,9 +215,9 @@ async function dashboard() {
     }
   }
 
-  /* -----------------------------------------------------------------------
-     DAILY
-     ----------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------
+     DAILY  (registro diario) · FIX: envía name para evitar 403
+     --------------------------------------------------------------------- */
   async function dailyView() {
     const dateInput = qs("#entry-date");
     dateInput.value = new Date().toISOString().slice(0,10);
@@ -230,41 +227,47 @@ async function dashboard() {
     container.innerHTML = "";
     machines.forEach(m => {
       const div = create("div","flex gap-2");
-      div.innerHTML = `<span class="flex-1">${m.machine.name}</span>\
-        <input type="number" class="input w-24" value="${m.weightKg}" data-id="${m.machine.id}">\
-        <input type="number" class="input w-16" value="${m.reps}"      data-r="reps">\
-        <input type="number" class="input w-16" value="${m.sets}"      data-r="sets">`;
+      div.innerHTML =
+        `<span class="flex-1">${m.machine.name}</span>\
+         <input type="number" class="input w-24" value="${m.weightKg}" data-id="${m.machine.id}">\
+         <input type="number" class="input w-16" value="${m.reps}"      data-r="reps">\
+         <input type="number" class="input w-16" value="${m.sets}"      data-r="sets">`;
       container.appendChild(div);
     });
 
     const form = qs("#daily-form");
     form.onsubmit = async e => {
       e.preventDefault();
-      const details = {};
+
+      /* ----------- array completo que incluye nombre ----------- */
+      const exercises = [];
       container.querySelectorAll("div").forEach(row => {
-        const id   = row.querySelector("[data-id]").dataset.id;
-        const kg   = +row.querySelector("[data-id]").value;
-        const reps = +row.querySelector("[data-r='reps']").value;
-        const sets = +row.querySelector("[data-r='sets']").value;
-        details[id] = { weightKg: kg, reps, sets };
+        exercises.push({
+          name     : row.querySelector("span").textContent.trim(),
+          weightKg : +row.querySelector("[data-id]").value,
+          reps     : +row.querySelector("[data-r='reps']").value,
+          sets     : +row.querySelector("[data-r='sets']").value
+        });
       });
+
       await fetch(`${API_BASE}/api/daily`, {
         method : "POST",
         headers: authHeaders(),
-        body   : JSON.stringify({ date: dateInput.value, exercises: Object.values(details) })
+        body   : JSON.stringify({ date: dateInput.value, exercises })
       });
+
       alert("Registro guardado");
     };
   }
 
-  /* -----------------------------------------------------------------------
-     REPORTS
-     ----------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------
+     REPORTS (PDF)
+     --------------------------------------------------------------------- */
   function reportsView(){
     const fullBtn   = qs("#full-pdf");
     const rangeBtn  = qs("#range-pdf");
 
-    fullBtn.onclick = () =>
+    fullBtn.onclick  = () =>
       download(`${API_BASE}/api/report/full`, "progreso.pdf");
 
     rangeBtn.onclick = () => {
@@ -275,14 +278,14 @@ async function dashboard() {
     };
   }
 
-  /* ---------- descarga con token en query-string ---------- */
+  /* --------------- descarga con token en query-string --------------- */
   function download(url, filename){
     const token = localStorage.getItem(TOKEN_KEY);
-    const href  = `${url}${url.includes("?")?"&":"?"}token=${token}`;
+    const href  = `${url}${url.includes("?") ? "&" : "?"}token=${token}`;
     window.open(href, "_blank");
   }
 
-  /* ---------- logout ---------- */
+  /* ------------------------------ logout ----------------------------- */
   qs("#logout").onclick = () => {
     localStorage.removeItem(TOKEN_KEY);
     location.href = "index.html";
