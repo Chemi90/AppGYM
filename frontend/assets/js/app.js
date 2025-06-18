@@ -165,13 +165,14 @@ async function dashboard() {
   const nf = v => v === "" ? null : +v;
 
   /* ---------------------------------------------------------------------
-     MACHINES
+     MACHINES  · edición en línea
      --------------------------------------------------------------------- */
   async function machinesView() {
     const table = qs("#machine-table");
     const list  = await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json();
     renderRows(list);
 
+    /* ------- alta / actualización desde el formulario superior -------- */
     const form = qs("#machine-form");
     form.onsubmit = async e => {
       e.preventDefault();
@@ -190,22 +191,82 @@ async function dashboard() {
       renderRows(await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json());
     };
 
+    /* ----------------------- helpers de tabla ------------------------- */
     function renderRows(rows) {
       table.innerHTML = "";
       rows.forEach(m => {
         const tr = create("tr");
         tr.innerHTML =
-          `<td>${m.machine.name}</td>\
-           <td>${m.weightKg}</td>\
-           <td>${m.reps}</td>\
-           <td>${m.sets}</td>\
-           <td class="text-right"><button data-id="${m.id}" class="btn-danger">×</button></td>`;
+          `<td class="machine-name">${m.machine.name}</td>\
+           <td class="machine-kg">${m.weightKg}</td>\
+           <td class="machine-reps">${m.reps}</td>\
+           <td class="machine-sets">${m.sets}</td>\
+           <td class="text-right">\
+              <button class="btn-edit" title="Editar"   data-id="${m.id}">✎</button>\
+              <button class="btn-danger" title="Eliminar" data-id="${m.id}">×</button>\
+           </td>`;
         table.appendChild(tr);
-        tr.querySelector("button").onclick = async () => {
+
+        /* eliminar ---------------------------------------------------- */
+        tr.querySelector(".btn-danger").onclick = async () => {
           await fetch(`${API_BASE}/api/machines/${m.id}`, { method:"DELETE", headers:authHeaders() });
           tr.remove();
         };
+
+        /* editar ------------------------------------------------------ */
+        tr.querySelector(".btn-edit").onclick = () => startEdit(tr, m);
       });
+    }
+
+    /* --------- modo edición (convierte celdas en inputs) ------------- */
+    function startEdit(tr, m){
+      const kgTd   = tr.querySelector(".machine-kg");
+      const repsTd = tr.querySelector(".machine-reps");
+      const setsTd = tr.querySelector(".machine-sets");
+      kgTd.innerHTML   = `<input type="number" class="input w-24" value="${m.weightKg}">`;
+      repsTd.innerHTML = `<input type="number" class="input w-16" value="${m.reps}">`;
+      setsTd.innerHTML = `<input type="number" class="input w-16" value="${m.sets}">`;
+
+      /* sustituye ✎ por Guardar */
+      const actions = tr.lastElementChild;
+      actions.querySelector(".btn-edit").remove();
+      const saveBtn = create("button","btn");
+      saveBtn.textContent = "Guardar";
+      actions.prepend(saveBtn);
+
+      saveBtn.onclick = () => saveEdit(tr, m);
+    }
+
+    /* --------- guardar cambios y volver a modo lectura --------------- */
+    async function saveEdit(tr, m){
+      const kg   = +tr.querySelector(".machine-kg input").value;
+      const reps = +tr.querySelector(".machine-reps input").value;
+      const sets = +tr.querySelector(".machine-sets input").value;
+
+      await fetch(`${API_BASE}/api/machines`, {
+        method : "POST",
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
+        body   : JSON.stringify({
+          name     : m.machine.name,
+          weightKg : kg,
+          reps,
+          sets
+        })
+      });
+
+      /* actualiza fila --------------------- */
+      tr.querySelector(".machine-kg").textContent   = kg;
+      tr.querySelector(".machine-reps").textContent = reps;
+      tr.querySelector(".machine-sets").textContent = sets;
+
+      /* botón Guardar → ✎ */
+      const actions = tr.lastElementChild;
+      actions.querySelector("button.btn").remove();
+      const editBtn = create("button","btn-edit");
+      editBtn.textContent = "✎";
+      editBtn.title = "Editar";
+      editBtn.onclick = () => startEdit(tr, m);
+      actions.prepend(editBtn);
     }
   }
 
@@ -253,7 +314,7 @@ async function dashboard() {
   }
 
   /* ---------------------------------------------------------------------
-     REPORTS  (PDF completo / intervalo)  · FIX 403
+     REPORTS  (PDF completo / intervalo)
      --------------------------------------------------------------------- */
   function reportsView(){
     const fullBtn  = qs("#full-pdf");
@@ -270,33 +331,20 @@ async function dashboard() {
     };
   }
 
-  /**
-   * Descarga con fetch (cabecera Authorization) y abre el PDF
-   * en una pestaña nueva.  Evita el 403 que provocaba window.open.
-   */
+  /* -------- descarga PDF con fetch (token en header) ------------------ */
   async function download(url, filename){
     const res = await fetch(url, { headers: authHeaders() });
-    if (!res.ok){
-      const txt = await res.text();
-      return alert(`Error ${res.status} – ${txt}`);
-    }
+    if (!res.ok) return alert(`Error ${res.status}`);
     const blob = await res.blob();
     const href = URL.createObjectURL(blob);
-
-    /* abrir en nueva pestaña */
-    const win = window.open(href, "_blank");
-    /* forzar descarga (opcional) */
     const a = create("a");
     a.href = href;
     a.download = filename;
     a.style.display = "none";
     document.body.appendChild(a);
     a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(href);
-      if (win) win.focus();
-    }, 200);
+    setTimeout(()=>{ URL.revokeObjectURL(href); a.remove(); }, 500);
+    window.open(href,"_blank");
   }
 
   /* ------------------------------ logout ----------------------------- */
