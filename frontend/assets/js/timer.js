@@ -1,4 +1,4 @@
-import { qs, qsa, create } from "./utils.js";
+import { qs, qsa, create } from "../utils.js";
 
 export function initAdvancedTimer(container){
   // inyectamos controles solo una vez

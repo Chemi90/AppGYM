@@ -4,7 +4,7 @@
    – Timer básico + avanzado (timer.js) ya insertados por main.js
 ----------------------------------------------------------------------- */
 import { api } from "../api.js";
-import { qs, create } from "../utils.js";
+import { qs, create } from "../../utils.js";
 
 export async function loadDaily(container, machines) {
   container.innerHTML = /*html*/`

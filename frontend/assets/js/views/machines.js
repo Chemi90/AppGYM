@@ -2,7 +2,7 @@
    CRUD en línea con edición fila-a-fila.
 ----------------------------------------------------------------------- */
 import { api } from "../api.js";
-import { qs, create } from "../utils.js";
+import { qs, create } from "../../utils.js";
 
 export async function loadMachines(container) {
   container.innerHTML = /*html*/`

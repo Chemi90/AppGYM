@@ -1,5 +1,5 @@
 import { Router }            from "./router.js";
-import { qs }                from "./utils.js";
+import { qs }                from "../utils.js";
 import { loadProfile }       from "./views/profile.js";
 import { loadStats }         from "./views/stats.js";
 import { loadMachines }      from "./views/machines.js";

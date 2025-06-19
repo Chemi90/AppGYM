@@ -1,5 +1,5 @@
 import { api } from "../api.js";
-import { qs } from "../utils.js";
+import { qs } from "../../utils.js";
 
 export async function loadProfile(container){
   container.innerHTML = `
