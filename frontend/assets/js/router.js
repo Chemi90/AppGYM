@@ -1,4 +1,4 @@
-import { qs } from "../utils.js";
+import { qs } from "./utils.js";
 
 export class Router {
   constructor(views, container){

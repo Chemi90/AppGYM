@@ -2,7 +2,7 @@
    Muestra el formulario de medidas y envía datos al backend.
 ----------------------------------------------------------------------- */
 import { api } from "../api.js";
-import { qs, nf } from "../../utils.js";
+import { qs, nf } from "../utils.js";
 
 export async function loadStats(container) {
   container.innerHTML = /*html*/`

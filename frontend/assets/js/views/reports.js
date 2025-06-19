@@ -5,7 +5,7 @@ import { api }          from "../api.js";
 import { authHeaders,
          API_BASE,
          qs,
-         create }       from "../../utils.js";
+         create }       from "../utils.js";
 
 export async function loadReports(container) {
   container.innerHTML = /*html*/`

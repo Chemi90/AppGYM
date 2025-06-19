@@ -1,4 +1,4 @@
-import { API_BASE, TOKEN_KEY, qs } from "../utils.js";
+import { API_BASE, TOKEN_KEY, qs } from "./utils.js";
 
 const form    = qs("#auth-form");
 const confirm = qs("#confirm");

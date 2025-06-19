@@ -1,4 +1,4 @@
-import { API_BASE, authHeaders } from "../utils.js";
+import { API_BASE, authHeaders } from "./utils.js";
 
 export const api = {
   get : (url)  => fetch(`${API_BASE}${url}`, { headers: authHeaders() }).then(r => r.json()),
