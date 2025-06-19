@@ -1,4 +1,5 @@
 module.exports = {
+	
   globDirectory : './',
   globPatterns  : [
     '**/*.{css,js,html,webmanifest,json,png,svg}'
@@ -19,5 +20,6 @@ module.exports = {
       handler   : 'StaleWhileRevalidate',
       options   : { cacheName: 'api' }
     }
-  ]
+  ],
+  cleanupOutdatedCaches: true
 };

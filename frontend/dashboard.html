@@ -5,20 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Gym Tracker · Panel</title>
 
-  <!-- hoja de estilos -->
   <link rel="stylesheet" href="assets/css/styles.css" />
-
-  <!-- YouTube IFrame API (temporizador) -->
   <script src="https://www.youtube.com/iframe_api"></script>
 
-  <!-- PWA -->
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" type="image/png" sizes="192x192" href="/icons/192.png" />
   <meta name="theme-color" content="#8b5cf6" />
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-  <!-- ───── Navbar ───── -->
   <nav class="navbar">
     <span class="brand">Gym Tracker</span>
     <div class="tabs">
@@ -31,19 +26,14 @@
     <button id="logout" class="btn-danger">Salir</button>
   </nav>
 
-  <!-- contenedor de vistas -->
   <main id="view-container" class="p-6 grid gap-6"></main>
 
-  <!-- FAB Quick-Add -->
   <button id="quick-add-btn" class="fab">＋</button>
 
-  <!-- scripts -->
   <script type="module" src="assets/js/main.js"></script>
   <script>
-    /* ── registro del Service-Worker (una sola vez) ── */
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .catch(err => console.error('SW registro falló', err));
+      navigator.serviceWorker.register('/sw.js').catch(e => console.error('SW error', e));
     }
   </script>
 </body>
