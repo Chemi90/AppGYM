@@ -8,15 +8,19 @@
   <!-- hoja de estilos -->
   <link rel="stylesheet" href="assets/css/styles.css" />
 
-  <!-- YouTube IFrame API (global) -->
+  <!-- YouTube IFrame API (temporizador) -->
   <script src="https://www.youtube.com/iframe_api"></script>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/192.png" />
+  <meta name="theme-color" content="#8b5cf6" />
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-  <!-- ───── Navbar base ───── -->
+  <!-- ───── Navbar ───── -->
   <nav class="navbar">
     <span class="brand">Gym Tracker</span>
-
     <div class="tabs">
       <a href="#profile"  class="tab">Perfil</a>
       <a href="#stats"    class="tab">Medidas</a>
@@ -24,17 +28,23 @@
       <a href="#daily"    class="tab">Diario</a>
       <a href="#reports"  class="tab">Informes</a>
     </div>
-
     <button id="logout" class="btn-danger">Salir</button>
   </nav>
 
   <!-- contenedor de vistas -->
   <main id="view-container" class="p-6 grid gap-6"></main>
 
-  <!-- FAB Quick-Add (solo funcional en #daily) -->
+  <!-- FAB Quick-Add -->
   <button id="quick-add-btn" class="fab">＋</button>
 
-  <!-- script principal -->
+  <!-- scripts -->
   <script type="module" src="assets/js/main.js"></script>
+  <script>
+    /* ── registro del Service-Worker (una sola vez) ── */
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .catch(err => console.error('SW registro falló', err));
+    }
+  </script>
 </body>
 </html>

@@ -1,0 +1,14 @@
+{
+  "name": "gym-tracker-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Frontend PWA de Gym-Tracker (Netlify)",
+"scripts": {
+  "dev"      : "http-server . -p 8080 -c-1",
+  "build-sw" : "workbox generateSW workbox-config.js"
+},
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "workbox-cli": "^7.3.0"
+  }
+}
