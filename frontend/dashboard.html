@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Gym Tracker · Panel</title>
   <link rel="stylesheet" href="assets/css/styles.css" />
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-  <!-- ───────── Navbar ───────── -->
+  <!-- shell navbar -->
   <nav class="navbar">
     <span class="brand">Gym Tracker</span>
     <div class="tabs">
@@ -19,142 +19,18 @@
       <a href="#daily"    class="tab">Diario</a>
       <a href="#reports"  class="tab">Informes</a>
     </div>
-    <button id="logout" class="btn-danger btn-logout">Salir</button>
+    <button id="logout" class="btn-danger">Salir</button>
   </nav>
 
-  <!-- Contenedor dinámico -->
+  <!-- contenedor de vistas -->
   <main id="view-container" class="p-6 grid gap-6"></main>
 
-  <!-- ────── Templates (se clonan desde JS) ────── -->
+  <!-- botón Quick-Add -->
+  <button id="quick-add-btn" class="fab">＋</button>
 
-  <!-- 1 · Perfil -->
-  <template id="profile-view">
-    <h2 class="view-title">Perfil</h2>
-    <form id="profile-form" class="grid gap-4 max-w-xl">
-      <div class="grid" style="grid-template-columns:1fr 1fr;gap:1rem;">
-        <input id="firstName" class="input" placeholder="Nombre" required />
-        <input id="lastName"  class="input" placeholder="Apellidos" required />
-      </div>
-      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:1rem;">
-        <input id="age"    type="number" class="input" placeholder="Edad" required />
-        <input id="height" type="number" class="input" placeholder="Estatura (cm)" required />
-        <input id="weight" type="number" class="input" placeholder="Peso (kg)"   required />
-      </div>
-      <button class="btn w-max">Guardar</button>
-    </form>
-  </template>
+  <!-- temporizador / controles avanzados (se inyectan en daily.js) -->
+  <div id="timer-controls"></div>
 
-  <!-- 2 · Medidas -->
-  <template id="stats-view">
-    <h2 class="view-title">Medidas</h2>
-    <form id="stats-form" class="grid gap-4 max-w-xl">
-      <input id="stats-date" type="date" class="input" style="width:max-content;" required />
-      <fieldset class="grid" style="grid-template-columns:repeat(3,1fr);gap:1rem;">
-        <legend class="font-semibold">Medidas (cm)</legend>
-        <input id="stats-weight"     type="number" class="input" placeholder="Peso (kg)" step="0.1">
-        <input id="stats-neck"       type="number" class="input" placeholder="Cuello">
-        <input id="stats-chest"      type="number" class="input" placeholder="Pecho">
-        <input id="stats-waist"      type="number" class="input" placeholder="Cintura">
-        <input id="stats-lowerAbs"   type="number" class="input" placeholder="Abd. bajo">
-        <input id="stats-hip"        type="number" class="input" placeholder="Cadera">
-        <input id="stats-biceps"     type="number" class="input" placeholder="Bíceps relaj.">
-        <input id="stats-bicepsFlex" type="number" class="input" placeholder="Bíceps flex.">
-        <input id="stats-forearm"    type="number" class="input" placeholder="Antebrazo">
-        <input id="stats-thigh"      type="number" class="input" placeholder="Muslo">
-        <input id="stats-calf"       type="number" class="input" placeholder="Pantorrilla">
-      </fieldset>
-      <button class="btn w-max">Guardar</button>
-    </form>
-  </template>
-
-  <!-- 3 · Máquinas -->
-  <template id="machines-view">
-    <h2 class="view-title">Máquinas y pesos</h2>
-    <form id="machine-form" class="flex flex-wrap gap-4 mb-4">
-      <input id="machine-name" class="input flex-1" placeholder="Nombre de la máquina" required />
-      <input id="machine-kg"   type="number" class="input" style="width:6rem;" placeholder="Kg"    required />
-      <input id="machine-reps" type="number" class="input" style="width:5rem;" placeholder="Reps"  required />
-      <input id="machine-sets" type="number" class="input" style="width:5rem;" placeholder="Series"required />
-      <button class="btn">Añadir / Actualizar</button>
-    </form>
-
-    <table class="bg-white shadow rounded-xl overflow-hidden">
-      <thead>
-        <tr>
-          <th class="th">Máquina</th>
-          <th class="th">Kg</th>
-          <th class="th">Reps</th>
-          <th class="th">Series</th>
-          <th class="th"></th>
-        </tr>
-      </thead>
-      <tbody id="machine-table"></tbody>
-    </table>
-  </template>
-
-  <!-- 4 · Diario -->
-  <template id="daily-view">
-    <h2 class="view-title">Registro diario</h2>
-
-    <!-- Cronómetro avanzado -->
-    <section class="timer-box">
-      <div class="flex items-center gap-4">
-
-        <!-- Display -->
-        <div id="series-timer" class="timer">00:00</div>
-
-        <!-- Modo -->
-        <select id="timer-mode" class="input w-max">
-          <option value="stopwatch">Cronómetro</option>
-          <option value="countdown">Cuenta atrás</option>
-          <option value="alarm">Alarma</option>
-        </select>
-
-        <!-- Tiempo / presets -->
-        <input id="timer-input" type="time" step="1"
-               value="00:01:30" class="input w-max countdown-field">
-        <select id="preset-list" class="input w-max countdown-field"></select>
-        <button id="add-preset"  class="btn-icon countdown-field" title="Guardar preset">★</button>
-
-        <!-- Controles -->
-        <div class="flex gap-2">
-          <button id="timer-start" class="btn-icon" title="Iniciar">▶</button>
-          <button id="timer-pause" class="btn-icon" title="Pausar">❚❚</button>
-          <button id="timer-reset" class="btn-icon" title="Reiniciar">⟲</button>
-        </div>
-
-        <!-- Alerta -->
-        <select id="alert-mode" class="input w-max">
-          <option value="sound">Sonido</option>
-          <option value="vibrate">Vibrar</option>
-          <option value="none">Silencio</option>
-        </select>
-
-      </div>
-    </section>
-
-    <!-- Formulario diario -->
-    <form id="daily-form" class="grid gap-4" style="margin-top:1rem;">
-      <input id="entry-date" type="date" class="input" style="width:max-content;" required />
-      <div id="daily-machines" class="grid gap-2"></div>
-      <button class="btn w-max">Guardar registro</button>
-    </form>
-
-    <!-- Botón flotante Quick-Add -->
-    <button id="quick-add-btn" class="fab" title="Quick Add">＋</button>
-  </template>
-
-  <!-- 5 · Informes PDF -->
-  <template id="reports-view">
-    <h2 class="view-title">Informes PDF</h2>
-    <button id="full-pdf" class="btn mb-4">PDF completo</button>
-    <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1rem;">
-      <input id="from" type="date" class="input">
-      <input id="to"   type="date" class="input">
-    </div>
-    <button id="range-pdf" class="btn">PDF intervalo</button>
-  </template>
-
-  <script src="assets/js/app.js" type="module"></script>
+  <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>
