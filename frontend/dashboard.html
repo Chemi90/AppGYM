@@ -1,4 +1,3 @@
-<!-- frontend/dashboard.html  · versión con Quick-Add + temporizador -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,12 +7,11 @@
   <link rel="stylesheet" href="assets/css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen">
 
-  <!-- ────── Navbar ────── -->
+  <!-- ───────── Navbar ───────── -->
   <nav class="navbar">
     <span class="brand">Gym Tracker</span>
-
     <div class="tabs">
       <a href="#profile"  class="tab">Perfil</a>
       <a href="#stats"    class="tab">Medidas</a>
@@ -21,45 +19,38 @@
       <a href="#daily"    class="tab">Diario</a>
       <a href="#reports"  class="tab">Informes</a>
     </div>
-
     <button id="logout" class="btn-danger btn-logout">Salir</button>
   </nav>
 
-  <!-- contenedor dinámico -->
+  <!-- Contenedor dinámico -->
   <main id="view-container" class="p-6 grid gap-6"></main>
 
-  <!-- ────── Templates (se clonan desde app.js) ────── -->
+  <!-- ────── Templates (se clonan desde JS) ────── -->
 
-  <!-- 1 · Perfil ------------------------------------------------------- -->
+  <!-- 1 · Perfil -->
   <template id="profile-view">
     <h2 class="view-title">Perfil</h2>
-
     <form id="profile-form" class="grid gap-4 max-w-xl">
       <div class="grid" style="grid-template-columns:1fr 1fr;gap:1rem;">
         <input id="firstName" class="input" placeholder="Nombre" required />
         <input id="lastName"  class="input" placeholder="Apellidos" required />
       </div>
-
       <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:1rem;">
         <input id="age"    type="number" class="input" placeholder="Edad" required />
         <input id="height" type="number" class="input" placeholder="Estatura (cm)" required />
         <input id="weight" type="number" class="input" placeholder="Peso (kg)"   required />
       </div>
-
       <button class="btn w-max">Guardar</button>
     </form>
   </template>
 
-  <!-- 2 · Medidas ------------------------------------------------------ -->
+  <!-- 2 · Medidas -->
   <template id="stats-view">
     <h2 class="view-title">Medidas</h2>
-
     <form id="stats-form" class="grid gap-4 max-w-xl">
       <input id="stats-date" type="date" class="input" style="width:max-content;" required />
-
       <fieldset class="grid" style="grid-template-columns:repeat(3,1fr);gap:1rem;">
         <legend class="font-semibold">Medidas (cm)</legend>
-
         <input id="stats-weight"     type="number" class="input" placeholder="Peso (kg)" step="0.1">
         <input id="stats-neck"       type="number" class="input" placeholder="Cuello">
         <input id="stats-chest"      type="number" class="input" placeholder="Pecho">
@@ -72,15 +63,13 @@
         <input id="stats-thigh"      type="number" class="input" placeholder="Muslo">
         <input id="stats-calf"       type="number" class="input" placeholder="Pantorrilla">
       </fieldset>
-
       <button class="btn w-max">Guardar</button>
     </form>
   </template>
 
-  <!-- 3 · Máquinas ----------------------------------------------------- -->
+  <!-- 3 · Máquinas -->
   <template id="machines-view">
     <h2 class="view-title">Máquinas y pesos</h2>
-
     <form id="machine-form" class="flex flex-wrap gap-4 mb-4">
       <input id="machine-name" class="input flex-1" placeholder="Nombre de la máquina" required />
       <input id="machine-kg"   type="number" class="input" style="width:6rem;" placeholder="Kg"    required />
@@ -103,42 +92,66 @@
     </table>
   </template>
 
-  <!-- 4 · Diario ------------------------------------------------------- -->
+  <!-- 4 · Diario -->
   <template id="daily-view">
     <h2 class="view-title">Registro diario</h2>
 
-    <!-- Temporizador + modo alerta -->
-    <div class="flex items-center gap-3 mb-3">
-      <div id="series-timer" class="timer">00s</div>
+    <!-- Cronómetro avanzado -->
+    <section class="timer-box">
+      <div class="flex items-center gap-4">
 
-      <select id="alert-mode" class="input w-max" style="width:max-content;">
-        <option value="sound">Sonido</option>
-        <option value="vibrate">Vibrar</option>
-        <option value="none">Silencio</option>
-      </select>
-    </div>
+        <!-- Display -->
+        <div id="series-timer" class="timer">00:00</div>
 
-    <form id="daily-form" class="grid gap-4">
+        <!-- Modo -->
+        <select id="timer-mode" class="input w-max">
+          <option value="stopwatch">Cronómetro</option>
+          <option value="countdown">Cuenta atrás</option>
+          <option value="alarm">Alarma</option>
+        </select>
+
+        <!-- Tiempo / presets -->
+        <input id="timer-input" type="time" step="1"
+               value="00:01:30" class="input w-max countdown-field">
+        <select id="preset-list" class="input w-max countdown-field"></select>
+        <button id="add-preset"  class="btn-icon countdown-field" title="Guardar preset">★</button>
+
+        <!-- Controles -->
+        <div class="flex gap-2">
+          <button id="timer-start" class="btn-icon" title="Iniciar">▶</button>
+          <button id="timer-pause" class="btn-icon" title="Pausar">❚❚</button>
+          <button id="timer-reset" class="btn-icon" title="Reiniciar">⟲</button>
+        </div>
+
+        <!-- Alerta -->
+        <select id="alert-mode" class="input w-max">
+          <option value="sound">Sonido</option>
+          <option value="vibrate">Vibrar</option>
+          <option value="none">Silencio</option>
+        </select>
+
+      </div>
+    </section>
+
+    <!-- Formulario diario -->
+    <form id="daily-form" class="grid gap-4" style="margin-top:1rem;">
       <input id="entry-date" type="date" class="input" style="width:max-content;" required />
       <div id="daily-machines" class="grid gap-2"></div>
       <button class="btn w-max">Guardar registro</button>
     </form>
 
-    <!-- Botón flotante QUICK-ADD -->
+    <!-- Botón flotante Quick-Add -->
     <button id="quick-add-btn" class="fab" title="Quick Add">＋</button>
   </template>
 
-  <!-- 5 · Informes PDF ------------------------------------------------- -->
+  <!-- 5 · Informes PDF -->
   <template id="reports-view">
     <h2 class="view-title">Informes PDF</h2>
-
     <button id="full-pdf" class="btn mb-4">PDF completo</button>
-
     <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1rem;">
       <input id="from" type="date" class="input">
       <input id="to"   type="date" class="input">
     </div>
-
     <button id="range-pdf" class="btn">PDF intervalo</button>
   </template>
 
