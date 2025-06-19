@@ -62,5 +62,6 @@ export async function loadDaily(container, machines) {
   };
 
   /* ---------- temporizador avanzado SOLO aquí ---------- */
-  initAdvancedTimer(qs("#timer-controls"));
+  import("../timer.js").then(({ initAdvancedTimer }) =>
+    initAdvancedTimer(qs("#timer-controls")));
 }
