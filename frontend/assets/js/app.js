@@ -1,20 +1,20 @@
 /* =========================================================================
    GYM TRACKER · Front-end (Netlify)
-   Archivo: assets/js/app.js
+   Archivo: assets/js/app.js  (versión con Quick‑Add + Temporizador)
    ========================================================================= */
 
 /* ------------------------------------------------------------------ CONFIG */
 const API_BASE  = import.meta?.env?.VITE_API_BASE
                || "https://appgym-production-64ac.up.railway.app";
 const TOKEN_KEY = "gym_token";
+const DEFAULT_REST_SEC = 90;        // temporizador por defecto (seg)
 
 /* ---------------------------------------------------------------- HELPERS */
 const qs     = (sel, el = document) => el.querySelector(sel);
+const qsa    = (sel, el = document) => el.querySelectorAll(sel);
 const create = (tag, cls = "") => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
 
-const authHeaders = () => ({
-  "Authorization": `Bearer ${localStorage.getItem(TOKEN_KEY)}`
-});
+const authHeaders = () => ({ "Authorization": `Bearer ${localStorage.getItem(TOKEN_KEY)}` });
 
 /* ---------------------------------------------------------------- ROUTING */
 if (location.pathname.endsWith("/index.html") || location.pathname === "/") {
@@ -129,7 +129,7 @@ async function dashboard() {
   }
 
   /* ---------------------------------------------------------------------
-     STATS  (medidas)
+     STATS (medidas)
      --------------------------------------------------------------------- */
   async function statsView() {
     const form = qs("#stats-form");
@@ -165,14 +165,13 @@ async function dashboard() {
   const nf = v => v === "" ? null : +v;
 
   /* ---------------------------------------------------------------------
-     MACHINES  · edición en línea
+     MACHINES (edición en línea)
      --------------------------------------------------------------------- */
   async function machinesView() {
     const table = qs("#machine-table");
     const list  = await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json();
     renderRows(list);
 
-    /* ------- alta / actualización desde el formulario superior -------- */
     const form = qs("#machine-form");
     form.onsubmit = async e => {
       e.preventDefault();
@@ -202,8 +201,8 @@ async function dashboard() {
            <td class="machine-reps">${m.reps}</td>\
            <td class="machine-sets">${m.sets}</td>\
            <td class="text-right">\
-              <button class="btn-edit" title="Editar"   data-id="${m.id}">✎</button>\
-              <button class="btn-danger" title="Eliminar" data-id="${m.id}">×</button>\
+              <button class="btn-icon btn-edit" title="Editar"   data-id="${m.id}">✎</button>\
+              <button class="btn-danger"        title="Eliminar" data-id="${m.id}">×</button>\
            </td>`;
         table.appendChild(tr);
 
@@ -218,7 +217,6 @@ async function dashboard() {
       });
     }
 
-    /* --------- modo edición (convierte celdas en inputs) ------------- */
     function startEdit(tr, m){
       const kgTd   = tr.querySelector(".machine-kg");
       const repsTd = tr.querySelector(".machine-reps");
@@ -227,17 +225,14 @@ async function dashboard() {
       repsTd.innerHTML = `<input type="number" class="input w-16" value="${m.reps}">`;
       setsTd.innerHTML = `<input type="number" class="input w-16" value="${m.sets}">`;
 
-      /* sustituye ✎ por Guardar */
       const actions = tr.lastElementChild;
       actions.querySelector(".btn-edit").remove();
       const saveBtn = create("button","btn");
       saveBtn.textContent = "Guardar";
       actions.prepend(saveBtn);
-
       saveBtn.onclick = () => saveEdit(tr, m);
     }
 
-    /* --------- guardar cambios y volver a modo lectura --------------- */
     async function saveEdit(tr, m){
       const kg   = +tr.querySelector(".machine-kg input").value;
       const reps = +tr.querySelector(".machine-reps input").value;
@@ -246,23 +241,16 @@ async function dashboard() {
       await fetch(`${API_BASE}/api/machines`, {
         method : "POST",
         headers: { ...authHeaders(), "Content-Type": "application/json" },
-        body   : JSON.stringify({
-          name     : m.machine.name,
-          weightKg : kg,
-          reps,
-          sets
-        })
+        body   : JSON.stringify({ name:m.machine.name, weightKg:kg, reps, sets })
       });
 
-      /* actualiza fila --------------------- */
       tr.querySelector(".machine-kg").textContent   = kg;
       tr.querySelector(".machine-reps").textContent = reps;
       tr.querySelector(".machine-sets").textContent = sets;
 
-      /* botón Guardar → ✎ */
       const actions = tr.lastElementChild;
       actions.querySelector("button.btn").remove();
-      const editBtn = create("button","btn-edit");
+      const editBtn = create("button","btn-icon btn-edit");
       editBtn.textContent = "✎";
       editBtn.title = "Editar";
       editBtn.onclick = () => startEdit(tr, m);
@@ -271,30 +259,59 @@ async function dashboard() {
   }
 
   /* ---------------------------------------------------------------------
-     DAILY  (registro diario)
+     DAILY  (registro diario + QUICK ADD + Temporizador)
      --------------------------------------------------------------------- */
   async function dailyView() {
     const dateInput = qs("#entry-date");
     dateInput.value = new Date().toISOString().slice(0,10);
 
+    const alertSel  = qs("#alert-mode");
+    const timerBox  = qs("#series-timer");
+
+    let timerId = null, remaining = DEFAULT_REST_SEC;
+
+    function startTimer(){
+      clearInterval(timerId);
+      remaining = DEFAULT_REST_SEC;
+      updateTimer();
+      timerId = setInterval(()=>{
+        remaining--; updateTimer();
+        if(remaining<=0){ clearInterval(timerId); doAlert(); }
+      },1000);
+    }
+    function updateTimer(){
+      timerBox.textContent = `${remaining}s`;
+      timerBox.classList.toggle("running", remaining < DEFAULT_REST_SEC);
+    }
+    function doAlert(){
+      const mode = alertSel.value;
+      if(mode==="sound"){ new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=").play(); }
+      if(mode==="vibrate" && navigator.vibrate){ navigator.vibrate([200,100,200]); }
+      timerBox.classList.remove("running");
+    }
+
+    /* -------- listo máquinas -------- */
     const machines  = await (await fetch(`${API_BASE}/api/machines`, { headers: authHeaders() })).json();
     const container = qs("#daily-machines");
     container.innerHTML = "";
     machines.forEach(m => {
-      const div = create("div","flex gap-2");
+      const div = create("div","flex gap-2 machine-row");
       div.innerHTML =
         `<span class="flex-1">${m.machine.name}</span>\
          <input type="number" class="input w-24" value="${m.weightKg}" data-id="${m.machine.id}">\
          <input type="number" class="input w-16" value="${m.reps}"      data-r="reps">\
          <input type="number" class="input w-16" value="${m.sets}"      data-r="sets">`;
       container.appendChild(div);
+
+      /* evento temporizador: cuando se cambian reps */
+      div.querySelector("[data-r='reps']").addEventListener("change", startTimer);
     });
 
     const form = qs("#daily-form");
     form.onsubmit = async e => {
       e.preventDefault();
       const exercises = [];
-      container.querySelectorAll("div").forEach(row => {
+      container.querySelectorAll(".machine-row").forEach(row => {
         exercises.push({
           name     : row.querySelector("span").textContent.trim(),
           weightKg : +row.querySelector("[data-id]").value,
@@ -302,14 +319,29 @@ async function dashboard() {
           sets     : +row.querySelector("[data-r='sets']").value
         });
       });
-
       await fetch(`${API_BASE}/api/daily`, {
         method : "POST",
         headers: { ...authHeaders(), "Content-Type": "application/json" },
         body   : JSON.stringify({ date: dateInput.value, exercises })
       });
-
       alert("Registro guardado");
+    };
+
+    /* -------------------- QUICK ADD (botón flotante) ------------------- */
+    qs("#quick-add-btn").onclick = async () => {
+      const today = new Date().toISOString().slice(0,10);
+      const exercises = machines.map(m => ({
+        name     : m.machine.name,
+        weightKg : m.weightKg,
+        reps     : m.reps,
+        sets     : m.sets
+      }));
+      await fetch(`${API_BASE}/api/daily`, {
+        method : "POST",
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
+        body   : JSON.stringify({ date: today, exercises })
+      });
+      alert("Registro rápido guardado ✔️");
     };
   }
 
@@ -320,31 +352,24 @@ async function dashboard() {
     const fullBtn  = qs("#full-pdf");
     const rangeBtn = qs("#range-pdf");
 
-    fullBtn.onclick  = () =>
-      download(`${API_BASE}/api/report/full`, "progreso.pdf");
+    fullBtn.onclick  = () => download(`${API_BASE}/api/report/full`, "progreso.pdf");
 
     rangeBtn.onclick = () => {
       const f = qs("#from").value, t = qs("#to").value;
       if (!f || !t) return alert("Seleccione ambas fechas");
-      download(`${API_BASE}/api/report/period?from=${f}&to=${t}`,
-               `progreso_${f}_${t}.pdf`);
+      download(`${API_BASE}/api/report/period?from=${f}&to=${t}`, `progreso_${f}_${t}.pdf`);
     };
   }
 
-  /* -------- descarga PDF con fetch (token en header) ------------------ */
   async function download(url, filename){
     const res = await fetch(url, { headers: authHeaders() });
     if (!res.ok) return alert(`Error ${res.status}`);
     const blob = await res.blob();
     const href = URL.createObjectURL(blob);
     const a = create("a");
-    a.href = href;
-    a.download = filename;
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(()=>{ URL.revokeObjectURL(href); a.remove(); }, 500);
-    window.open(href,"_blank");
+    a.href = href; a.download = filename; a.style.display = "none";
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(href); a.remove(); }, 800);
   }
 
   /* ------------------------------ logout ----------------------------- */

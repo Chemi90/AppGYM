@@ -1,4 +1,4 @@
-<!-- frontend/dashboard.html -->
+<!-- frontend/dashboard.html  · versión con Quick-Add + temporizador -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,11 +8,12 @@
   <link rel="stylesheet" href="assets/css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body>
 
-  <!-- ────── barra superior ────── -->
+  <!-- ────── Navbar ────── -->
   <nav class="navbar">
     <span class="brand">Gym Tracker</span>
+
     <div class="tabs">
       <a href="#profile"  class="tab">Perfil</a>
       <a href="#stats"    class="tab">Medidas</a>
@@ -20,15 +21,16 @@
       <a href="#daily"    class="tab">Diario</a>
       <a href="#reports"  class="tab">Informes</a>
     </div>
-    <button id="logout" class="btn-danger">Salir</button>
+
+    <button id="logout" class="btn-danger btn-logout">Salir</button>
   </nav>
 
   <!-- contenedor dinámico -->
   <main id="view-container" class="p-6 grid gap-6"></main>
 
-  <!-- ────── Templates (se clonan en JS) ────── -->
+  <!-- ────── Templates (se clonan desde app.js) ────── -->
 
-  <!-- 1 · Perfil ---------------------------------------------------------- -->
+  <!-- 1 · Perfil ------------------------------------------------------- -->
   <template id="profile-view">
     <h2 class="view-title">Perfil</h2>
 
@@ -48,14 +50,13 @@
     </form>
   </template>
 
-  <!-- 2 · Medidas --------------------------------------------------------- -->
+  <!-- 2 · Medidas ------------------------------------------------------ -->
   <template id="stats-view">
     <h2 class="view-title">Medidas</h2>
 
     <form id="stats-form" class="grid gap-4 max-w-xl">
       <input id="stats-date" type="date" class="input" style="width:max-content;" required />
 
-      <!-- Medidas -->
       <fieldset class="grid" style="grid-template-columns:repeat(3,1fr);gap:1rem;">
         <legend class="font-semibold">Medidas (cm)</legend>
 
@@ -72,13 +73,11 @@
         <input id="stats-calf"       type="number" class="input" placeholder="Pantorrilla">
       </fieldset>
 
-      <!-- (Fotos eliminadas) -->
-
       <button class="btn w-max">Guardar</button>
     </form>
   </template>
 
-  <!-- 3 · Máquinas -------------------------------------------------------- -->
+  <!-- 3 · Máquinas ----------------------------------------------------- -->
   <template id="machines-view">
     <h2 class="view-title">Máquinas y pesos</h2>
 
@@ -104,18 +103,32 @@
     </table>
   </template>
 
-  <!-- 4 · Diario ---------------------------------------------------------- -->
+  <!-- 4 · Diario ------------------------------------------------------- -->
   <template id="daily-view">
     <h2 class="view-title">Registro diario</h2>
+
+    <!-- Temporizador + modo alerta -->
+    <div class="flex items-center gap-3 mb-3">
+      <div id="series-timer" class="timer">00s</div>
+
+      <select id="alert-mode" class="input w-max" style="width:max-content;">
+        <option value="sound">Sonido</option>
+        <option value="vibrate">Vibrar</option>
+        <option value="none">Silencio</option>
+      </select>
+    </div>
 
     <form id="daily-form" class="grid gap-4">
       <input id="entry-date" type="date" class="input" style="width:max-content;" required />
       <div id="daily-machines" class="grid gap-2"></div>
       <button class="btn w-max">Guardar registro</button>
     </form>
+
+    <!-- Botón flotante QUICK-ADD -->
+    <button id="quick-add-btn" class="fab" title="Quick Add">＋</button>
   </template>
 
-  <!-- 5 · Informes PDF ---------------------------------------------------- -->
+  <!-- 5 · Informes PDF ------------------------------------------------- -->
   <template id="reports-view">
     <h2 class="view-title">Informes PDF</h2>
 
