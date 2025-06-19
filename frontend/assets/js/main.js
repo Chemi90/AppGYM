@@ -1,13 +1,13 @@
-import { Router }               from "./router.js";
+import { Router }               from "./views/router.js";
 import { qs }                   from "./utils.js";
 import { loadProfile }          from "./views/profile.js";
 import { loadStats }            from "./views/stats.js";
 import { loadMachines }         from "./views/machines.js";
 import { loadDaily }            from "./views/daily.js";
 import { loadReports }          from "./views/reports.js";
-import { initQuickAdd }         from "./quickAdd.js";
+import { initQuickAdd }         from "./views/quickAdd.js";
 import { api }                  from "./api.js";
-import { initAdvancedTimer }    from "./timer.js";
+import { initAdvancedTimer }    from "./views/timer.js";
 
 /* ---------------- logout ---------------- */
 qs("#logout").onclick = () => { localStorage.clear(); location.href="index.html"; };

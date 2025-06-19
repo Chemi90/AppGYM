@@ -1,5 +1,5 @@
-import { api, authHeaders } from "./api.js";
-import { qs } from "./utils.js";
+import { api, authHeaders } from "../api.js";
+import { qs } from "../utils.js";
 
 export async function initQuickAdd(listMachines){
   qs("#quick-add-btn").onclick = async ()=>{
