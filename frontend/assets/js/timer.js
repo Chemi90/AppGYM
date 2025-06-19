@@ -1,188 +1,182 @@
-/* -------------------------------------------------------------------------
-   ADVANCED TIMER   (cronómetro   |  cuenta-atrás  |  alertas sonido/vibrar)
-   – Posicionado ahora en la parte superior del Daily view.
-   – Sólo dos acciones visibles: ▶︎ Play   ⏸ Pause   ⭯ Reset
-   – Vibración mantenida (hasta pulsar la pantalla) y audio YouTube silenciado.
-   – Intenta mantener alerta con pantalla bloqueada usando Wake Lock.
-   ---------------------------------------------------------------------- */
+/* =========================================================================
+   ADVANCED TIMER – v2
+   – Cronómetro & Cuenta-atrás con alerta “Sonido / Vibrar / Ambos”.
+   – Mantiene vibración hasta que el usuario pulsa la pantalla.
+   – Audio YouTube en modo “solo sonido” oculto (búfer interno HTML5 de respaldo).
+   – Wake-Lock para seguir sonando/vibrando con pantalla apagada (Android ≥ 12).
+   ========================================================================= */
 
 import { qs, create } from "./utils.js";
 
-export function initAdvancedTimer(targetParent) {
-  /* ─── no duplicar ─── */
+export function initAdvancedTimer(parent) {
+  /* ─── evita múltiples instancias ─── */
   if (qs("#timer-box")) return;
 
-  /* ---------- UI HTML ---------- */
-  targetParent.insertAdjacentHTML("afterbegin", /*html*/`
-    <div id="timer-box" class="timer-box fade-in">
-      <span id="series-timer" class="timer">00:00:00</span>
+  /* ---------- HTML UI ---------- */
+  parent.prepend(createTimerBox());
 
-      <div class="flex gap-2 items-center">
-        <select id="timer-mode" class="input w-32">
-          <option value="stopwatch">Cronómetro</option>
-          <option value="countdown">Cuenta atrás</option>
-        </select>
-
-        <input  id="h-field" type="number" class="input w-14" min="0" placeholder="h">
-        <input  id="m-field" type="number" class="input w-14" min="0" max="59" placeholder="m">
-        <input  id="s-field" type="number" class="input w-14" min="0" max="59" placeholder="s">
-
-        <select id="alert-mode" class="input w-max">
-          <option value="soundvib">Sonido + Vibrar</option>
-          <option value="sound">Sólo sonido</option>
-          <option value="vibrate">Sólo vibrar</option>
-        </select>
-
-        <button id="timer-start" class="btn-icon" title="Start">▶</button>
-        <button id="timer-pause" class="btn-icon hidden" title="Pause">⏸</button>
-        <button id="timer-reset" class="btn-icon" title="Reset">⭯</button>
-      </div>
-    </div>
-  `);
-
-  /* ---------- referencias ---------- */
-  const modeSel   = qs("#timer-mode");
-  const hField    = qs("#h-field");
-  const mField    = qs("#m-field");
-  const sField    = qs("#s-field");
-  const display   = qs("#series-timer");
-  const playBtn   = qs("#timer-start");
-  const pauseBtn  = qs("#timer-pause");
-  const resetBtn  = qs("#timer-reset");
-  const alertSel  = qs("#alert-mode");
+  /* ---------- refs ---------- */
+  const display  = qs("#series-timer");
+  const modeSel  = qs("#timer-mode");
+  const hField   = qs("#h-field");
+  const mField   = qs("#m-field");
+  const sField   = qs("#s-field");
+  const alertSel = qs("#alert-mode");
+  const playBtn  = qs("#timer-start");
+  const pauseBtn = qs("#timer-pause");
+  const resetBtn = qs("#timer-reset");
 
   /* ---------- estado ---------- */
-  let tickId     = null;         // setInterval id
-  let endTime    = 0;            // timestamp (countdown) o start (cronómetro)
-  let isRunning  = false;
+  let intervalId = null;
+  let base       = 0;          // start -o- final según modo
+  let running    = false;
   let vibLoopId  = null;
   let wakeLock   = null;
 
-  /* ---------- YouTube audio ---------- */
+  /* ---------- YouTube “audio-only” ---------- */
   let ytReady = false, ytPlayer;
   ensureYT();
 
   /* ---------- eventos ---------- */
-  playBtn.onclick  = () => { if (!isRunning) start(); };
-  pauseBtn.onclick = () => pause();
-  resetBtn.onclick = () => reset();
+  playBtn.onclick  = start;
+  pauseBtn.onclick = pause;
+  resetBtn.onclick = reset;
 
-  ["pointerdown", "touchstart", "keydown", "visibilitychange"].forEach(ev =>
-    window.addEventListener(ev, stopAlerts, { passive: true })
-  );
+  ["pointerdown","touchstart","keydown","visibilitychange"]
+    .forEach(ev => window.addEventListener(ev, stopAlerts, { passive:true }));
 
-  /* =============== funciones internas =============== */
+  /* ============ funciones ============ */
 
   function start() {
+    if (running) return;
     stopAlerts();
-    isRunning = true;
-    toggleButtons();
+    running = true; toggleButtons();
 
     if (modeSel.value === "stopwatch") {
-      endTime = Date.now() - (parseInt(display.dataset.elapsed || 0));
-      tickId  = setInterval(() => update(Date.now() - endTime), 1000);
-    } else {                                             // countdown
-      const totalMs = (+hField.value * 3600 +
-                       +mField.value * 60 +
-                       +sField.value) * 1000;
-      if (totalMs <= 0) { alert("Define un tiempo"); reset(); return; }
-
-      endTime = Date.now() + totalMs;
-      update(totalMs);
-      tickId  = setInterval(() => {
-        const msLeft = endTime - Date.now();
-        update(msLeft);
-        if (msLeft <= 0) { pause(); fireAlert(); }
+      base = Date.now() - (parseInt(display.dataset.ms || 0));
+      intervalId = setInterval(() => update(Date.now() - base), 1000);
+    } else {                               // countdown
+      const total = (+hField.value * 3600 + +mField.value * 60 + +sField.value) * 1000;
+      if (total <= 0) { alert("Define un tiempo"); reset(); return; }
+      base = Date.now() + total;
+      intervalId = setInterval(() => {
+        const left = base - Date.now();
+        update(left);
+        if (left <= 0) { pause(); alertNow(); }
       }, 1000);
+      update(total);
     }
-    requestWakeLock();
+    getWakeLock();
   }
 
   function pause() {
-    clearInterval(tickId); tickId = null;
-    isRunning = false;
-    display.dataset.elapsed = modeSel.value === "stopwatch"
-        ? (Date.now() - endTime) : (endTime - Date.now());
-    toggleButtons();
+    clearInterval(intervalId); intervalId = null;
+    running = false; toggleButtons();
+    display.dataset.ms = modeSel.value === "stopwatch"
+        ? Date.now() - base            // elapsed
+        : base - Date.now();           // remaining
     releaseWakeLock();
   }
 
   function reset() {
     pause();
+    display.dataset.ms = 0;
     update(0);
-    display.dataset.elapsed = 0;
   }
 
   function update(ms) {
     if (ms < 0) ms = 0;
-    const sec = Math.floor(ms / 1000) % 60;
-    const min = Math.floor(ms / 60000) % 60;
-    const hrs = Math.floor(ms / 3600000);
-    display.textContent = [hrs, min, sec].map(v => String(v).padStart(2, "0")).join(":");
-    display.classList.toggle("running", isRunning);
+    const s = Math.floor(ms / 1000) % 60;
+    const m = Math.floor(ms / 60000) % 60;
+    const h = Math.floor(ms / 3600000);
+    display.textContent = [h,m,s].map(v => String(v).padStart(2,"0")).join(":");
+    display.classList.toggle("running", running);
   }
 
   function toggleButtons() {
-    playBtn.classList.toggle("hidden",  isRunning);
-    pauseBtn.classList.toggle("hidden", !isRunning);
+    playBtn.classList.toggle("hidden",  running);
+    pauseBtn.classList.toggle("hidden", !running);
   }
 
   /* ---------- alertas ---------- */
-  function fireAlert() {
+  function alertNow() {
     const mode = alertSel.value;
-    if (mode.includes("sound"))   playAudio();
-    if (mode.includes("vibrate")) startVibrate();
+    if (mode === "vibrate" || mode === "soundvib") startVib();
+    if (mode === "sound"   || mode === "soundvib") playAudio();
   }
 
-  function startVibrate() {
+  function startVib() {
     if (!navigator.vibrate) return;
-    navigator.vibrate(10000);                   // primer ciclo 10 s
+    navigator.vibrate(10000);
     vibLoopId = setInterval(() => navigator.vibrate(10000), 10000);
   }
 
   function stopAlerts() {
     clearInterval(vibLoopId); vibLoopId = null;
     navigator.vibrate?.(0);
-    if (ytReady && ytPlayer.stopVideo) ytPlayer.stopVideo();
+    if (ytReady && ytPlayer?.stopVideo) ytPlayer.stopVideo();
   }
 
-  /* ---------- Wake-Lock (mantener CPU/vibración con pantalla apagada) */
-  async function requestWakeLock() {
+  /* ---------- wake-lock ---------- */
+  async function getWakeLock() {
     try {
       if ('wakeLock' in navigator && !wakeLock) {
         wakeLock = await navigator.wakeLock.request('screen');
         wakeLock.addEventListener('release', () => (wakeLock = null));
       }
-    } catch (e) { /* puede fallar en iOS / desktop */ }
+    } catch { /* silencioso */ }
   }
-  function releaseWakeLock() {
-    wakeLock?.release(); wakeLock = null;
-  }
+  function releaseWakeLock() { wakeLock?.release(); wakeLock = null; }
 
-  /* ---------- audio “oculto” via YouTube sólo-audio ---------- */
+  /* ---------- YouTube invisible ---------- */
   function ensureYT() {
-    if (window.YT && window.YT.Player) return onReadyYT();
-    // ya cargaste iframe_api en dashboard.html
-    window.onYouTubeIframeAPIReady = onReadyYT;
+    if (window.YT?.Player) return onYT();
+    window.onYouTubeIframeAPIReady = onYT;
   }
-
-  function onReadyYT() {
+  function onYT() {
     if (ytPlayer) return;
-    const wrapper = create("div");
-    wrapper.id = "yt-audio";
-    wrapper.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;";
-    document.body.appendChild(wrapper);
-
+    const div = create("div"); div.id = "yt-audio";
+    div.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;";
+    document.body.appendChild(div);
     ytPlayer = new YT.Player("yt-audio", {
       videoId: "JoolQUDWq-k",
-      playerVars: { controls: 0, modestbranding: 1 },
-      events: { onReady: () => (ytReady = true) }
+      playerVars:{ controls:0, modestbranding:1 },
+      events:{ onReady: () => (ytReady = true) }
     });
   }
-
   function playAudio() {
     if (!ytReady) { setTimeout(playAudio, 400); return; }
     ytPlayer.seekTo(0);
     ytPlayer.playVideo();
+  }
+
+  /* ---------- helper ---------- */
+  function createTimerBox() {
+    const box = document.createElement("div");
+    box.id = "timer-box";
+    box.className = "timer-box fade-in";
+    box.innerHTML = /*html*/`
+      <span id="series-timer" class="timer">00:00:00</span>
+
+      <select id="timer-mode" class="input w-32">
+        <option value="stopwatch">Cronómetro</option>
+        <option value="countdown">Cuenta atrás</option>
+      </select>
+
+      <input id="h-field" type="number" class="input w-14" min="0" placeholder="h">
+      <input id="m-field" type="number" class="input w-14" min="0" max="59" placeholder="m">
+      <input id="s-field" type="number" class="input w-14" min="0" max="59" placeholder="s">
+
+      <select id="alert-mode" class="input w-28">
+        <option value="soundvib">Sonido + Vibrar</option>
+        <option value="sound">Sólo sonido</option>
+        <option value="vibrate">Sólo vibrar</option>
+      </select>
+
+      <button id="timer-start" class="btn-icon" title="Play">▶</button>
+      <button id="timer-pause" class="btn-icon hidden" title="Pause">⏸</button>
+      <button id="timer-reset" class="btn-icon" title="Reset">⭯</button>
+    `;
+    return box;
   }
 }
