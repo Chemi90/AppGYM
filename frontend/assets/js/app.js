@@ -382,8 +382,9 @@ async function dashboard(){
     setTimeout(()=>{URL.revokeObjectURL(href); a.remove();},800);
   }
 
-  /* ------------------------------------------------------------------
-     LOGOUT
-     ------------------------------------------------------------------ */
-  qs("#logout").onclick = ()=>{
-    localStorage.removeItem(TOKEN
+  /* ------------------------------ logout ----------------------------- */
+  qs("#logout").onclick = () => {
+    localStorage.removeItem(TOKEN_KEY);
+    location.href = "index.html";
+  };
+}
