@@ -1,6 +1,4 @@
-/* VIEW: Máquinas y pesos -----------------------------------------------
-   CRUD en línea con edición fila-a-fila.
------------------------------------------------------------------------ */
+/* VIEW: Máquinas y pesos ------------------------------------------------- */
 import { api } from "../api.js";
 import { qs, create } from "../utils.js";
 
@@ -45,9 +43,9 @@ export async function loadMachines(container) {
   };
 
   /* helpers */
-  function renderRows(rows) {
+  function renderRows(rows){
     table.innerHTML = "";
-    rows.forEach(m => {
+    rows.forEach(m=>{
       const tr = create("tr");
       tr.innerHTML = `
         <td class="machine-name">${m.machine.name}</td>
@@ -60,32 +58,39 @@ export async function loadMachines(container) {
         </td>`;
       table.appendChild(tr);
 
-      /* eliminar */
-      tr.querySelector(".btn-danger").onclick = async () => {
+      tr.querySelector(".btn-danger").onclick = async ()=>{
         await api.del(`/api/machines/${m.id}`);
         tr.remove();
       };
 
-      /* editar */
-      tr.querySelector(".btn-edit").onclick = () => startEdit(tr, m);
+      tr.querySelector(".btn-edit").onclick = ()=>startEdit(tr, m);
     });
   }
 
-  function startEdit(tr, m) {
+  function startEdit(tr, m){
     tr.querySelector(".machine-kg").innerHTML   = `<input type="number" class="input w-24" value="${m.weightKg}">`;
     tr.querySelector(".machine-reps").innerHTML = `<input type="number" class="input w-16" value="${m.reps}">`;
     tr.querySelector(".machine-sets").innerHTML = `<input type="number" class="input w-16" value="${m.sets}">`;
 
     const tdAct = tr.lastElementChild;
-    tdAct.querySelector(".btn-edit").remove();
-    const save = create("button", "btn"); save.textContent = "Guardar"; tdAct.prepend(save);
+    const editBtn = tdAct.querySelector(".btn-icon.btn-edit");
+    editBtn.remove();
 
-    save.onclick = async () => {
+    const save = create("button","btn-icon btn-save"); save.textContent="💾"; save.title="Guardar";
+    tdAct.prepend(save);
+
+    save.onclick = async ()=>{
       const kg   = +tr.querySelector(".machine-kg input").value;
       const reps = +tr.querySelector(".machine-reps input").value;
       const sets = +tr.querySelector(".machine-sets input").value;
-      await api.post("/api/machines", { name: m.machine.name, weightKg: kg, reps, sets });
-      renderRows(await api.get("/api/machines"));
+      await api.post("/api/machines",{ name:m.machine.name, weightKg:kg, reps, sets });
+
+      /* ← vuelve a vista normal */
+      tr.querySelector(".machine-kg").textContent   = kg;
+      tr.querySelector(".machine-reps").textContent = reps;
+      tr.querySelector(".machine-sets").textContent = sets;
+
+      save.remove(); tdAct.prepend(editBtn);
     };
   }
 }

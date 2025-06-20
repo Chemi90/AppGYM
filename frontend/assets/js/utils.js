@@ -9,3 +9,14 @@ export const API_BASE  = import.meta?.env?.VITE_API_BASE
                       || "https://appgym-production-64ac.up.railway.app";
 
 export const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` });
+
+/* ---------- Loader global ---------- */
+export function showLoader(show = true){
+  let ov = qs("#loader-overlay");
+  if (!ov){
+    ov = create("div"); ov.id = "loader-overlay"; ov.className = "hidden";
+    ov.innerHTML = '<div class="spinner"></div>';
+    document.body.appendChild(ov);
+  }
+  ov.classList.toggle("hidden", !show);
+}
