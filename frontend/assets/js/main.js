@@ -1,25 +1,33 @@
-import { Router }            from "./router.js";
-import { qs }                from "./utils.js";
-import { loadProfile }       from "./views/profile.js";
-import { loadStats }         from "./views/stats.js";
-import { loadMachines }      from "./views/machines.js";
-import { loadDaily }         from "./views/daily.js";
-import { loadReports }       from "./views/reports.js";
-import { initQuickAdd }      from "./quickAdd.js";
-import { api }               from "./api.js";
+import { Router }               from "./router.js";
+import { qs }                   from "./utils.js";
+import { loadProfile }          from "./views/profile.js";
+import { loadStats }            from "./views/stats.js";
+import { loadMachines }         from "./views/machines.js";
+import { loadDaily }            from "./views/daily.js";
+import { loadReports }          from "./views/reports.js";
+import { api }                  from "./api.js";
+import { initAdvancedTimer }    from "./timer.js";
 
-/* logout global ------------------------------------------------------- */
-qs("#logout").onclick = () => { localStorage.clear(); location.href = "index.html"; };
+/* ───────── logout ───────── */
+qs("#logout").onclick = () => {
+  localStorage.clear();
+  location.href = "index.html";
+};
 
-/* router -------------------------------------------------------------- */
+/* ───────── Router ───────── */
 new Router({
   profile : loadProfile,
   stats   : loadStats,
   machines: loadMachines,
-  daily   : async (c) => {
-              const machines = await api.get("/api/machines");
-              await loadDaily(c, machines);          // ← timer se inyecta dentro
-              initQuickAdd(machines);
-            },
+
+  /* --- DAILY -------------------------------------------------------- */
+  daily   : async container => {
+    const list = await api.get("/api/machines");
+    await loadDaily(container, list);
+
+    /* Timer avanzado siempre visible arriba de #daily */
+    initAdvancedTimer(container.querySelector(".view-title"));
+  },
+
   reports : loadReports
 }, qs("#view-container"));

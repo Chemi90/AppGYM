@@ -1,21 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Gym Tracker · Panel</title>
 
+  <!-- hoja de estilos -->
   <link rel="stylesheet" href="assets/css/styles.css" />
+
+  <!-- YouTube IFrame API (global) -->
   <script src="https://www.youtube.com/iframe_api"></script>
 
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/icons/192.png" />
-  <meta name="theme-color" content="#8b5cf6" />
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#8b5cf6">
 </head>
+
 <body class="bg-gray-100 min-h-screen">
 
+  <!-- ───── Navbar base ───── -->
   <nav class="navbar">
     <span class="brand">Gym Tracker</span>
+
     <div class="tabs">
       <a href="#profile"  class="tab">Perfil</a>
       <a href="#stats"    class="tab">Medidas</a>
@@ -23,18 +30,17 @@
       <a href="#daily"    class="tab">Diario</a>
       <a href="#reports"  class="tab">Informes</a>
     </div>
+
     <button id="logout" class="btn-danger">Salir</button>
   </nav>
 
+  <!-- contenedor de vistas -->
   <main id="view-container" class="p-6 grid gap-6"></main>
 
-  <button id="quick-add-btn" class="fab">＋</button>
+  <!-- overlay cargando (lo crea utils.js) -->
+  <!-- <div id="loader-overlay" class="hidden"><div class="spinner"></div></div> -->
 
+  <!-- script principal -->
   <script type="module" src="assets/js/main.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(e => console.error('SW error', e));
-    }
-  </script>
 </body>
 </html>
