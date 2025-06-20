@@ -1,87 +1,100 @@
 /* =========================================================================
-   ADVANCED TIMER – v2
-   – Cronómetro & Cuenta-atrás con alerta “Sonido / Vibrar / Ambos”.
-   – Mantiene vibración hasta que el usuario pulsa la pantalla.
-   – Audio YouTube en modo “solo sonido” oculto (búfer interno HTML5 de respaldo).
-   – Wake-Lock para seguir sonando/vibrando con pantalla apagada (Android ≥ 12).
+   TIMER MODAL  ▸  Cronómetro + Cuenta atrás
+   (v2025-06  ·  Wake-Lock + Notification + Audio offline)
    ========================================================================= */
 
 import { qs, create } from "./utils.js";
 
-export function initAdvancedTimer(parent) {
-  /* ─── evita múltiples instancias ─── */
-  if (qs("#timer-box")) return;
+/* ───────── CONSTANTES ───────── */
+const BEEP =
+  "data:audio/wav;base64,UklGRogAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YaAAAAAA////" +
+  "AAAAAAAAAAAAAAAAAAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD/"+
+  "/wAA";                          // breve beep (≈480 B)
 
-  /* ---------- HTML UI ---------- */
-  parent.prepend(createTimerBox());
+const VIB_PATTERN = [300, 300, 300, 300, 300, 300, 300, 300, 300, 300]; // 10 s
 
-  /* ---------- refs ---------- */
-  const display  = qs("#series-timer");
-  const modeSel  = qs("#timer-mode");
-  const hField   = qs("#h-field");
-  const mField   = qs("#m-field");
-  const sField   = qs("#s-field");
-  const alertSel = qs("#alert-mode");
-  const playBtn  = qs("#timer-start");
-  const pauseBtn = qs("#timer-pause");
-  const resetBtn = qs("#timer-reset");
+/* ───────── INICIALIZACIÓN ───────── */
+export function initAdvancedTimer(anchorEl) {
+  if (qs("#timer-box")) return;              // ya existe
 
-  /* ---------- estado ---------- */
-  let intervalId = null;
-  let base       = 0;          // start -o- final según modo
-  let running    = false;
-  let vibLoopId  = null;
-  let wakeLock   = null;
+  /* ---------- UI ---------- */
+  const box = create("div", "timer-box");
+  box.id = "timer-box";
+  box.innerHTML = `
+    <span id="series-timer" class="timer">00:00:00</span>
+    <select id="timer-mode">
+      <option value="stopwatch">Cronómetro</option>
+      <option value="countdown">Cuenta atrás</option>
+    </select>
+    <input  id="time-seg"   class="input" type="number" min="0" max="59" value="00" style="width:3.5rem">
+    <span>:</span>
+    <input  id="time-min"   class="input" type="number" min="0" max="59" value="01" style="width:3.5rem">
+    <span>:</span>
+    <input  id="time-hour"  class="input" type="number" min="0" max="23" value="00" style="width:3.5rem">
+    <select id="alert-mode">
+      <option value="sound">Sonido</option>
+      <option value="vibrate">Vibrar</option>
+      <option value="soundvib">Ambos</option>
+    </select>
+    <button id="btn-play"  class="btn-icon" title="Iniciar">▶</button>
+    <button id="btn-reset" class="btn-icon hidden" title="Reset">⭯</button>
+  `;
+  anchorEl.after(box);                       // siempre arriba del Daily
 
-  /* ---------- YouTube “audio-only” ---------- */
-  let ytReady = false, ytPlayer;
-  ensureYT();
+  /* ---------- VARIABLES ---------- */
+  const modeSel = qs("#timer-mode");
+  const hIn     = qs("#time-hour");
+  const mIn     = qs("#time-min");
+  const sIn     = qs("#time-seg");
+  const display = qs("#series-timer");
+  const playBtn = qs("#btn-play");
+  const resetBtn= qs("#btn-reset");
+  const alertSel= qs("#alert-mode");
 
-  /* ---------- eventos ---------- */
-  playBtn.onclick  = start;
-  pauseBtn.onclick = pause;
+  /* audio en memoria (bucle) */
+  const audio   = new Audio(BEEP);
+  audio.loop = true;
+
+  /* wake lock */
+  let lock = null;
+  async function keepAwake() {
+    try { lock = await navigator.wakeLock?.request("screen"); }
+    catch { /* no-op */ }
+  }
+  function releaseAwake() { lock?.release?.(); lock = null; }
+
+  /* temporizador */
+  let id = null, tStart = 0, remain = 0;
+
+  playBtn.onclick = () => {
+    playBtn.classList.add("hidden");
+    resetBtn.classList.remove("hidden");
+    if (modeSel.value === "stopwatch") {
+      tStart = Date.now();
+      keepAwake();
+      id = setInterval(() => update(Date.now() - tStart), 1000);
+    } else {
+      /* cuenta atrás */
+      remain = (+hIn.value * 3600 + +mIn.value * 60 + +sIn.value) * 1000;
+      if (remain <= 0) return reset();
+      keepAwake();
+      update(remain);
+      id = setInterval(() => {
+        remain -= 1000;
+        update(remain);
+        if (remain <= 0) { clearInterval(id); id = null; fireAlert(); }
+      }, 1000);
+    }
+  };
+
   resetBtn.onclick = reset;
 
-  ["pointerdown","touchstart","keydown","visibilitychange"]
-    .forEach(ev => window.addEventListener(ev, stopAlerts, { passive:true }));
-
-  /* ============ funciones ============ */
-
-  function start() {
-    if (running) return;
-    stopAlerts();
-    running = true; toggleButtons();
-
-    if (modeSel.value === "stopwatch") {
-      base = Date.now() - (parseInt(display.dataset.ms || 0));
-      intervalId = setInterval(() => update(Date.now() - base), 1000);
-    } else {                               // countdown
-      const total = (+hField.value * 3600 + +mField.value * 60 + +sField.value) * 1000;
-      if (total <= 0) { alert("Define un tiempo"); reset(); return; }
-      base = Date.now() + total;
-      intervalId = setInterval(() => {
-        const left = base - Date.now();
-        update(left);
-        if (left <= 0) { pause(); alertNow(); }
-      }, 1000);
-      update(total);
-    }
-    getWakeLock();
-  }
-
-  function pause() {
-    clearInterval(intervalId); intervalId = null;
-    running = false; toggleButtons();
-    display.dataset.ms = modeSel.value === "stopwatch"
-        ? Date.now() - base            // elapsed
-        : base - Date.now();           // remaining
-    releaseWakeLock();
-  }
-
   function reset() {
-    pause();
-    display.dataset.ms = 0;
-    update(0);
+    clearInterval(id); id = null;
+    update(0); stopAlert();
+    playBtn.classList.remove("hidden");
+    resetBtn.classList.add("hidden");
+    releaseAwake();
   }
 
   function update(ms) {
@@ -89,94 +102,56 @@ export function initAdvancedTimer(parent) {
     const s = Math.floor(ms / 1000) % 60;
     const m = Math.floor(ms / 60000) % 60;
     const h = Math.floor(ms / 3600000);
-    display.textContent = [h,m,s].map(v => String(v).padStart(2,"0")).join(":");
-    display.classList.toggle("running", running);
+    display.textContent = [h, m, s].map(v => String(v).padStart(2, "0")).join(":");
+    display.classList.toggle("running", !!id);
   }
 
-  function toggleButtons() {
-    playBtn.classList.toggle("hidden",  running);
-    pauseBtn.classList.toggle("hidden", !running);
-  }
-
-  /* ---------- alertas ---------- */
-  function alertNow() {
+  /* ---------- ALERTAS ---------- */
+  function fireAlert() {
     const mode = alertSel.value;
-    if (mode === "vibrate" || mode === "soundvib") startVib();
-    if (mode === "sound"   || mode === "soundvib") playAudio();
+    if (mode.includes("sound")) audio.play().catch(()=>{});
+    if (mode.includes("vibrate")) vibLoop();
+    showNotification();
   }
 
-  function startVib() {
+  /* vibrar 10 s o hasta interacción */
+  function vibLoop() {
     if (!navigator.vibrate) return;
-    navigator.vibrate(10000);
-    vibLoopId = setInterval(() => navigator.vibrate(10000), 10000);
+    navigator.vibrate(VIB_PATTERN);
+    const h = setInterval(() => navigator.vibrate(VIB_PATTERN), 10000);
+    window.addEventListener("pointerdown", () => {
+      clearInterval(h);
+      navigator.vibrate(0);
+    }, { once: true, passive: true });
   }
 
-  function stopAlerts() {
-    clearInterval(vibLoopId); vibLoopId = null;
-    navigator.vibrate?.(0);
-    if (ytReady && ytPlayer?.stopVideo) ytPlayer.stopVideo();
-  }
+  /* notificación persistente */
+  async function showNotification() {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "default") await Notification.requestPermission();
+    if (Notification.permission !== "granted") return;
 
-  /* ---------- wake-lock ---------- */
-  async function getWakeLock() {
-    try {
-      if ('wakeLock' in navigator && !wakeLock) {
-        wakeLock = await navigator.wakeLock.request('screen');
-        wakeLock.addEventListener('release', () => (wakeLock = null));
-      }
-    } catch { /* silencioso */ }
-  }
-  function releaseWakeLock() { wakeLock?.release(); wakeLock = null; }
-
-  /* ---------- YouTube invisible ---------- */
-  function ensureYT() {
-    if (window.YT?.Player) return onYT();
-    window.onYouTubeIframeAPIReady = onYT;
-  }
-  function onYT() {
-    if (ytPlayer) return;
-    const div = create("div"); div.id = "yt-audio";
-    div.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;";
-    document.body.appendChild(div);
-    ytPlayer = new YT.Player("yt-audio", {
-      videoId: "JoolQUDWq-k",
-      playerVars:{ controls:0, modestbranding:1 },
-      events:{ onReady: () => (ytReady = true) }
+    navigator.serviceWorker.getRegistration().then(reg => {
+      if (!reg) return;
+      reg.showNotification("¡Tiempo!", {
+        body: "Continúa con la siguiente serie",
+        vibrate: VIB_PATTERN,
+        requireInteraction: true,
+        tag: "gym-timer"
+      });
     });
   }
-  function playAudio() {
-    if (!ytReady) { setTimeout(playAudio, 400); return; }
-    ytPlayer.seekTo(0);
-    ytPlayer.playVideo();
+
+  function stopAlert() {
+    audio.pause(); audio.currentTime = 0;
+    navigator.vibrate?.(0);
+    navigator.serviceWorker.getRegistration().then(r=>{
+      r?.getNotifications({ tag:"gym-timer" }).then(list => list.forEach(n=>n.close()));
+    });
   }
 
-  /* ---------- helper ---------- */
-  function createTimerBox() {
-    const box = document.createElement("div");
-    box.id = "timer-box";
-    box.className = "timer-box fade-in";
-    box.innerHTML = /*html*/`
-      <span id="series-timer" class="timer">00:00:00</span>
-
-      <select id="timer-mode" class="input w-32">
-        <option value="stopwatch">Cronómetro</option>
-        <option value="countdown">Cuenta atrás</option>
-      </select>
-
-      <input id="h-field" type="number" class="input w-14" min="0" placeholder="h">
-      <input id="m-field" type="number" class="input w-14" min="0" max="59" placeholder="m">
-      <input id="s-field" type="number" class="input w-14" min="0" max="59" placeholder="s">
-
-      <select id="alert-mode" class="input w-28">
-        <option value="soundvib">Sonido + Vibrar</option>
-        <option value="sound">Sólo sonido</option>
-        <option value="vibrate">Sólo vibrar</option>
-      </select>
-
-      <button id="timer-start" class="btn-icon" title="Play">▶</button>
-      <button id="timer-pause" class="btn-icon hidden" title="Pause">⏸</button>
-      <button id="timer-reset" class="btn-icon" title="Reset">⭯</button>
-    `;
-    return box;
-  }
+  /* detener alertas al primer toque / tecla */
+  ["pointerdown","keydown","touchstart"].forEach(ev=>{
+    window.addEventListener(ev, stopAlert, { passive:true });
+  });
 }
