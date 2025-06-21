@@ -1,12 +1,17 @@
-/* VIEW: Medidas ---------------------------------------------------------
-   Muestra el formulario de medidas y envía datos al backend.
------------------------------------------------------------------------ */
+/* =========================================================================
+   VIEW: Medidas  ·  Formulario + envío al backend
+   Con LOGS dbg() para depuración
+   ========================================================================= */
+
 import { api } from "../api.js";
-import { qs, nf } from "../utils.js";
-dbg('STATS', 'render');
-export async function loadStats(container) {
+import { qs, nf, dbg } from "../utils.js";     // ← añadimos dbg
+
+dbg('STATS', 'render view');
+
+export async function loadStats (container) {
   container.innerHTML = /*html*/`
     <h2 class="view-title">Medidas</h2>
+
     <form id="stats-form" class="grid gap-4 max-w-xl">
       <input id="stats-date" type="date" class="input" style="width:max-content" required>
 
@@ -29,29 +34,34 @@ export async function loadStats(container) {
     </form>
   `;
 
-  /* fecha hoy */
-  qs("#stats-date").value = new Date().toISOString().slice(0, 10);
+  /* —— Fecha por defecto = hoy —— */
+  qs('#stats-date').value = new Date().toISOString().slice(0, 10);
 
-  /* envío */
-  qs("#stats-form").onsubmit = async e => {
+  /* —— Submit —— */
+  qs('#stats-form').onsubmit = async ev => {
+    ev.preventDefault();
+
+    const f = qs('#stats-form');
+    const body = {
+      date        : f['stats-date'].value,
+      weightKg    : nf(f['stats-weight'].value),
+      neckCm      : nf(f['stats-neck'].value),
+      chestCm     : nf(f['stats-chest'].value),
+      waistCm     : nf(f['stats-waist'].value),
+      lowerAbsCm  : nf(f['stats-lowerAbs'].value),
+      hipCm       : nf(f['stats-hip'].value),
+      bicepsCm    : nf(f['stats-biceps'].value),
+      bicepsFlexCm: nf(f['stats-bicepsFlex'].value),
+      forearmCm   : nf(f['stats-forearm'].value),
+      thighCm     : nf(f['stats-thigh'].value),
+      calfCm      : nf(f['stats-calf'].value)
+    };
+
     dbg('STATS', 'submit', body);
-    e.preventDefault();
-    const f = qs("#stats-form");
-    await api.post("/api/stats", {
-      date        : f["stats-date"].value,
-      weightKg    : nf(f["stats-weight"].value),
-      neckCm      : nf(f["stats-neck"].value),
-      chestCm     : nf(f["stats-chest"].value),
-      waistCm     : nf(f["stats-waist"].value),
-      lowerAbsCm  : nf(f["stats-lowerAbs"].value),
-      hipCm       : nf(f["stats-hip"].value),
-      bicepsCm    : nf(f["stats-biceps"].value),
-      bicepsFlexCm: nf(f["stats-bicepsFlex"].value),
-      forearmCm   : nf(f["stats-forearm"].value),
-      thighCm     : nf(f["stats-thigh"].value),
-      calfCm      : nf(f["stats-calf"].value)
-    });
-    alert("Medidas guardadas");
+
+    await api.post('/api/stats', body);
+
+    alert('Medidas guardadas');
     f.reset();
   };
 }
