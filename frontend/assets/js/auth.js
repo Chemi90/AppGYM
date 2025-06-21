@@ -1,57 +1,51 @@
-/* =========================================================================
-   AUTH · Login / Registro  (con dbg logs)
-   ========================================================================= */
+/* -------------------------------------------------------------------------
+   AUTH · login / registro
+   ------------------------------------------------------------------------- */
 import { API_BASE, TOKEN_KEY, qs, dbg } from "./utils.js";
 
-/* --- DOM refs --- */
+dbg('AUTH', 'init');
+
+/* --- elementos DOM --- */
 const form     = qs('#auth-form');
 const confirm  = qs('#confirm');
 const toggle   = qs('#toggle-link');
 const title    = qs('#form-title');
 const submitBt = qs('#submit-btn');
 
-let mode = 'login';                       // estado inicial
-confirm.classList.add('hidden');          // oculto de partida
+let mode = 'login';          // estado inicial (login)
 
-dbg('AUTH', 'init');
-
-/* --- toggle login/register ------------------------------------------ */
+/* --- alterna login / register --------------------------------------- */
 toggle.addEventListener('click', ev => {
   ev.preventDefault();
   mode = mode === 'login' ? 'register' : 'login';
-  dbg('AUTH', 'toggle', mode);
 
-  confirm.classList.toggle('hidden', mode === 'login');
+  /* añade/quita atributo hidden */
+  confirm.toggleAttribute('hidden', mode === 'login');
+
+  /* textos */
   title.textContent    = mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
   submitBt.textContent = mode === 'login' ? 'Entrar'         : 'Registrar';
   toggle.textContent   = mode === 'login'
-      ? '¿No tienes cuenta? Regístrate'
-      : '¿Ya tienes cuenta? Inicia sesión';
+    ? '¿No tienes cuenta? Regístrate'
+    : '¿Ya tienes cuenta? Inicia sesión';
 });
 
-/* --- submit ---------------------------------------------------------- */
+/* --- envío ----------------------------------------------------------- */
 form.onsubmit = async ev => {
   ev.preventDefault();
-  dbg('AUTH', 'submit', mode);
-
-  /* UI lock */
-  submitBt.disabled   = true;
+  submitBt.disabled = true;
   submitBt.textContent = '⏳ Enviando…';
 
   try {
     const body = { email: form.email.value, password: form.password.value };
     if (mode === 'register') body.confirm = form.confirm.value;
 
-    const url = `${API_BASE}/api/auth/${mode}`;
-    dbg('AUTH', 'FETCH', url, body);
-
-    const res = await fetch(url, {
+    const res = await fetch(`${API_BASE}/api/auth/${mode}`, {
       method : 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type':'application/json' },
       body   : JSON.stringify(body)
     });
 
-    dbg('AUTH', 'response', res.status);
     if (!res.ok) { alert(await res.text()); return; }
 
     const { token } = await res.json();

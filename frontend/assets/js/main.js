@@ -1,30 +1,53 @@
-import { Router }            from "./router.js";
-import { qs, dbg }           from "./utils.js";
-import { api }               from "./api.js";
+/* =========================================================================
+   Gym-Tracker · Main Router (sin Quick-Add, con vista RPG)
+   ========================================================================= */
 
-import { loadProfile } from "./views/profile.js";
-import { loadStats   } from "./views/stats.js";
-import { loadMachines} from "./views/machines.js";
-import { loadDaily   } from "./views/daily.js";
-import { loadReports } from "./views/reports.js";
-import { loadRpg     } from "./views/rpg.js";
+import { Router }            from './router.js';
+import { qs }                from './utils.js';
+import { api }               from './api.js';
 
-import { initAdvancedTimer } from "./timer.js";
+/* ------------ Vistas core ------------ */
+import { loadProfile }       from './views/profile.js';
+import { loadStats }         from './views/stats.js';
+import { loadMachines }      from './views/machines.js';
+import { loadDaily }         from './views/daily.js';
+import { loadReports }       from './views/reports.js';
+import { loadRpg }           from './views/rpg.js';   /* ← nueva */
 
-dbg('BOOT', '🚀 Iniciando frontend');
+/* ------------ Extras ------------ */
+import { initAdvancedTimer } from './timer.js';
 
-qs('#logout').onclick = () => { localStorage.clear(); location.href = 'index.html'; };
+/* —— Logout global —— */
+qs('#logout').onclick = () => {
+  localStorage.clear();
+  location.href = 'index.html';
+};
 
-new Router({
-  profile : loadProfile,
-  stats   : loadStats,
-  machines: loadMachines,
-  daily   : async c => {
-    dbg('DAILY', 'Cargando lista máquinas');
-    const list = await api.get('/api/machines');
-    await loadDaily(c, list);
-    initAdvancedTimer(c.querySelector('.view-title'));
+/* —— Router SPA —— */
+new Router(
+  {
+    /* Perfil ----------------------------------------------------------- */
+    profile : loadProfile,
+
+    /* Medidas ---------------------------------------------------------- */
+    stats   : loadStats,
+
+    /* Máquinas --------------------------------------------------------- */
+    machines: loadMachines,
+
+    /* Diario + temporizador avanzado ---------------------------------- */
+    daily   : async container => {
+      const list = await api.get('/api/machines');
+      await loadDaily(container, list);
+      /* Temporizador anclado debajo del título “Registro diario” */
+      initAdvancedTimer(container.querySelector('.view-title'));
+    },
+
+    /* Informes PDF ----------------------------------------------------- */
+    reports : loadReports,
+
+    /* Gamificación RPG ------------------------------------------------- */
+    rpg     : loadRpg
   },
-  reports : loadReports,
-  rpg     : loadRpg
-}, qs('#view-container'));
+  qs('#view-container')
+);
