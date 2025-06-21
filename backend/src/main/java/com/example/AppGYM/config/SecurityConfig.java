@@ -1,4 +1,3 @@
-// backend/src/main/java/com/example/AppGYM/config/SecurityConfig.java
 package com.example.AppGYM.config;
 
 import lombok.RequiredArgsConstructor;
@@ -16,6 +15,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -34,6 +38,21 @@ public class SecurityConfig {
     p.setUserDetailsService(users);
     p.setPasswordEncoder(passwordEncoder());
     return p::authenticate;
+  }
+
+  /* ---------- CORS global ---------- */
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration cfg = new CorsConfiguration();
+    cfg.setAllowedOrigins(List.of("https://appgymregistro.netlify.app"));
+    cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    cfg.setAllowedHeaders(List.of(
+            "Authorization", "Content-Type", "Cache-Control", "X-Requested-With"));
+    cfg.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+    src.registerCorsConfiguration("/**", cfg);
+    return src;
   }
 
   /* ---------- cadena ---------- */
