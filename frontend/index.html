@@ -5,36 +5,33 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Gym Tracker · Acceso</title>
 
+  <!-- estilos -->
   <link rel="stylesheet" href="assets/css/styles.css" />
 
-  <!-- PWA -->
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/icons/192.png" />
-  <meta name="theme-color" content="#8b5cf6" />
+  <!-- P-W-A -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#8b5cf6">
 </head>
 <body class="bg-gray-100 min-h-screen">
+
   <div class="container">
     <h1 id="form-title" class="title">Iniciar sesión</h1>
 
     <form id="auth-form" class="space-y-4">
       <input id="email"    class="input" type="email"    placeholder="Correo" required />
       <input id="password" class="input" type="password" placeholder="Contraseña" minlength="8" required />
-      <input id="confirm"  class="input hidden" type="password" placeholder="Repite contraseña" />
+      <!-- este campo solo debe mostrarse en modo “register” -->
+      <input id="confirm"  class="input hidden" type="password" placeholder="Repite tu contraseña" />
       <button id="submit-btn" class="btn w-full">Entrar</button>
     </form>
 
     <p class="text-center text-sm mt-4">
-      <a id="toggle-link" href="#" class="link">¿No tienes cuenta? Regístrate</a>
+      <a id="toggle-link" href="#" class="link">
+        ¿No tienes cuenta? Regístrate
+      </a>
     </p>
   </div>
 
   <script type="module" src="assets/js/auth.js"></script>
-  <script>
-    /*  también registramos el SW desde la pantalla de login  */
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .catch(err => console.error('SW registro falló', err));
-    }
-  </script>
 </body>
 </html>
