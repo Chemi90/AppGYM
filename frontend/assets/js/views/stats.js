@@ -1,10 +1,9 @@
 /* =========================================================================
-   VIEW: Medidas  ·  Formulario + envío al backend
-   Con LOGS dbg() para depuración
+   VIEW: Medidas – Formulario + envío al backend
    ========================================================================= */
 
 import { api } from "../api.js";
-import { qs, nf, dbg } from "../utils.js";     // ← añadimos dbg
+import { qs, nf, dbg } from "../utils.js";   // ← dbg importado
 
 dbg('STATS', 'render view');
 
@@ -34,10 +33,10 @@ export async function loadStats (container) {
     </form>
   `;
 
-  /* —— Fecha por defecto = hoy —— */
+  /* —— hoy por defecto —— */
   qs('#stats-date').value = new Date().toISOString().slice(0, 10);
 
-  /* —— Submit —— */
+  /* —— submit —— */
   qs('#stats-form').onsubmit = async ev => {
     ev.preventDefault();
 
@@ -58,7 +57,6 @@ export async function loadStats (container) {
     };
 
     dbg('STATS', 'submit', body);
-
     await api.post('/api/stats', body);
 
     alert('Medidas guardadas');

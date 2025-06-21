@@ -1,47 +1,67 @@
-/* ────────────────────────────────────────────────────────────────
-   Utilidades globales  +  Service-Worker  +  dbg()
-   ──────────────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────────────────────────
+   Utilidades globales
+   - selectores rápidos
+   - loader overlay
+   - función dbg()   ← NUEVA
+   - registro Service-Worker con recarga auto
+   ───────────────────────────────────────────────────────────────────────── */
+
 export const qs  = (sel, el = document) => el.querySelector(sel);
 export const qsa = (sel, el = document) => el.querySelectorAll(sel);
-export const create = (t, cls = '') => { const e = document.createElement(t); if (cls) e.className = cls; return e; };
+export const create = (tag, cls = '') => {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  return e;
+};
 
-/* logging helper */
-export const dbg = (tag, ...args) => console.log(`%c[${tag}]`, 'color:#8b5cf6;font-weight:700', ...args);
-
-/* num | null */
+/* ---------- num / null ---------- */
 export const nf = v => (v === '' ? null : +v);
 
-/* API & token */
-export const TOKEN_KEY  = 'gym_token';
-export const API_BASE   = import.meta?.env?.VITE_API_BASE || 'https://appgym-production-64ac.up.railway.app';
+/* ---------- tiny logger ---------- */
+export function dbg (ns, ...args) {
+  /*  Desactiva todas las trazas poniendo DEBUG = false                  */
+  const DEBUG = true;
+  /*  Filtra por namespace si quieres – p.ej. if(ns!=='TIMER') return;   */
+  if (!DEBUG) return;
+  console.log(`%c[${ns}]`, 'color:#7c3aed;font-weight:700', ...args);
+}
+
+/* ---------- API / Autenticación ---------- */
+export const TOKEN_KEY = 'gym_token';
+export const API_BASE  =
+  import.meta?.env?.VITE_API_BASE || 'https://appgym-production-64ac.up.railway.app';
+
 export const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` });
 
-/* loader overlay */
-export function showLoader () { qs('#loader-overlay')?.classList.remove('hidden'); }
-export function hideLoader () { qs('#loader-overlay')?.classList.add('hidden'); }
+/* ---------- Loader Overlay ---------- */
+export function showLoader (on = true) { qs('#loader-overlay')?.classList.toggle('hidden', !on); }
+export const hideLoader = () => showLoader(false);
 
-/* ---------- Service-Worker auto-refresh ---------- */
+/* =================  SERVICE-WORKER ================= */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').then(reg => {
     dbg('SW', 'Registrado', reg);
 
-    if (reg.waiting) activate(reg);
+    /* SW nuevo ya descargado */
+    if (reg.waiting) activateSW(reg);
+
+    /* SW nuevo mientras usamos la app */
     reg.addEventListener('updatefound', () => {
-      dbg('SW', 'updatefound');
       reg.installing.addEventListener('statechange', () => {
-        dbg('SW', 'statechange →', reg.installing.state);
-        if (reg.waiting) activate(reg);
+        if (reg.waiting) activateSW(reg);
       });
     });
   });
 
+  /* Recarga cuando hay nuevo controlador */
+  let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    dbg('SW', 'controllerchange → recarga');
+    if (refreshing) return;
+    refreshing = true;
     location.reload();
   });
 }
 
-function activate (reg) {
-  dbg('SW', 'Activando nuevo SW…');
+function activateSW (reg) {
   reg.waiting.postMessage({ type: 'SKIP_WAITING' });
 }
