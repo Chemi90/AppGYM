@@ -1,31 +1,48 @@
 /* =========================================================================
-   VISTA RPG  –  Versión conectada al backend
-   -------------------------------------------------------------------------
-   • Obtiene la ficha real con GET /api/rpg/character
-   • Chat → POST /api/rpg/chat
-   • Foto ejercicio → POST /api/rpg/exercise  (actualiza barras + XP)
-   • Foto comida    → POST /api/rpg/meal      (solo análisis por ahora)
+   VISTA RPG  –  Con ficha real, chat y subida de imágenes
+   (corrige ReferenceError y añade Ctrl+Enter para salto de línea)
    ========================================================================= */
 
-import { api }           from "../api.js";
-import { qs, create }    from "../utils.js";
+import { api }        from "../api.js";
+import { qs, create } from "../utils.js";
 
-/* ------------------------------- MAIN ---------------------------------- */
+/* ────────────────────────── HELPERS UI ────────────────────────── */
+
+/*  Barra de atributo  */
+function bar(label, val) {
+  return `<p>${label}
+            <progress value="${val}" max="999"></progress>
+            <b>${val}</b>
+          </p>`;
+}
+
+/*  Convierte archivo a base-64 sin la cabecera data:  */
+const toBase64 = file =>
+  new Promise(res => {
+    const fr = new FileReader();
+    fr.onload = e => res(e.target.result.split(",")[1]);
+    fr.readAsDataURL(file);
+  });
+
+/* ─────────────────────────── MAIN ────────────────────────────── */
+
 export async function loadRpg(container) {
 
   container.innerHTML = /*html*/`
     <section class="rpg-view fade-in">
       <h2 class="view-title">Aventura RPG</h2>
 
-      <!-- Ficha personaje -->
+      <!-- Ficha -->
       <div id="rpg-sheet" class="grid gap-6 md:grid-cols-2 mb-6"></div>
 
-      <!-- Chat + botones -->
+      <!-- Chat & acciones -->
       <div class="flex gap-2 items-start mb-4">
-        <input  id="chat-input" class="input flex-1" placeholder="Habla con tu maestro…" />
-        <button id="chat-send"  class="btn">Enviar</button>
+        <textarea id="chat-input"
+                  class="input flex-1 resize-y min-h-10"
+                  rows="2"
+                  placeholder="Habla con tu maestro… (Ctrl+Enter para salto)"></textarea>
+        <button id="chat-send" class="btn">Enviar</button>
 
-        <!-- selector archivo oculto + botón -->
         <input  id="photo-input" type="file" accept="image/*" hidden />
         <button id="photo-btn" class="btn-icon" title="Subir foto">📷</button>
       </div>
@@ -37,7 +54,7 @@ export async function loadRpg(container) {
     </section>
   `;
 
-  /* -------- referencias DOM -------- */
+  /* ---------- DOM refs ---------- */
   const sheetEl = qs("#rpg-sheet",  container);
   const chatBox = qs("#chat-box",   container);
   const chatIn  = qs("#chat-input", container);
@@ -45,14 +62,28 @@ export async function loadRpg(container) {
   const photoBt = qs("#photo-btn",  container);
   const photoIn = qs("#photo-input",container);
 
-  /* -------- carga ficha inicial -------- */
+  /* ---------- Carga ficha ---------- */
   let char = null;
-  try { char = await api.get("/api/rpg/character"); } catch {/* primera vez */ }
+  try { char = await api.get("/api/rpg/character"); } catch {}
   if (char) renderSheet(char);
 
-  /* ===================== CHAT ===================== */
+  /* ---------- Chat ---------- */
   sendBt.onclick = sendChat;
-  chatIn.addEventListener("keydown", e => { if (e.key === "Enter") sendChat(); });
+  chatIn.addEventListener("keydown", e => {
+    /* Ctrl+Enter = salto de línea;  Enter sin Ctrl = enviar */
+    if (e.key === "Enter" && !e.shiftKey) {
+      if (e.ctrlKey) {
+        /* inserta salto de línea manualmente */
+        const { selectionStart, selectionEnd, value } = chatIn;
+        chatIn.value = value.slice(0, selectionStart) + "\n" + value.slice(selectionEnd);
+        chatIn.selectionStart = chatIn.selectionEnd = selectionStart + 1;
+        e.preventDefault();
+      } else {
+        e.preventDefault();
+        sendChat();
+      }
+    }
+  });
 
   async function sendChat() {
     const txt = chatIn.value.trim();
@@ -60,32 +91,41 @@ export async function loadRpg(container) {
     append("user", txt);
     chatIn.value = "";
 
-    const { reply } = await api.post("/api/rpg/chat", { prompt: txt });
-    append("ai", reply);
+    try {
+      const { reply } = await api.post("/api/rpg/chat", { prompt: txt });
+      append("ai", reply);
+    } catch (err) {
+      append("sys", "❌ Error enviando mensaje");
+      console.error(err);
+    }
   }
 
-  /* ===================== FOTO ===================== */
-  photoBt.onclick = () => photoIn.click();
-  photoIn.onchange = async () => {
+  /* ---------- Subida de foto ---------- */
+  photoBt.onclick   = () => photoIn.click();
+  photoIn.onchange  = async () => {
     const file = photoIn.files[0];
     if (!file) return;
 
     const base64 = await toBase64(file);
     const exercise = confirm("Aceptar = Ejercicio · Cancelar = Comida");
 
-    if (exercise) {
-      /* envía y recibe ficha actualizada */
-      const pj = await api.post("/api/rpg/exercise", { imageBase64: base64 });
-      renderSheet(pj);
-      append("ai", `🏋️ ¡Ganaste ${pj.str} de Fuerza!  XP: ${pj.xp}/${pj.xpNext}`);
-    } else {
-      const { analysis } = await api.post("/api/rpg/meal", { imageBase64: base64 });
-      append("ai", `🍽️ ${analysis}`);
+    try {
+      if (exercise) {
+        const pj = await api.post("/api/rpg/exercise", { imageBase64: base64 });
+        renderSheet(pj);
+        append("ai", `🏋️ ¡Fuerza +${pj.str} ·  XP ${pj.xp}/${pj.xpNext}!`);
+      } else {
+        const { analysis } = await api.post("/api/rpg/meal", { imageBase64: base64 });
+        append("ai", `🍽️ ${analysis}`);
+      }
+    } catch (err) {
+      append("sys", "❌ Error procesando la imagen");
+      console.error(err);
     }
-    photoIn.value = "";      // limpia input
+    photoIn.value = "";   // reset
   };
 
-  /* ==================== HELPERS =================== */
+  /* ─────────────────── helpers internos ─────────────────── */
 
   function renderSheet(pj) {
     sheetEl.innerHTML = /*html*/`
@@ -104,20 +144,12 @@ export async function loadRpg(container) {
     `;
   }
 
-  const bar = (label, val) =>
-    `<p>${label} <progress value="${val}" max="999"></progress> <b>${val}</b></p>`;
-
-  const append = (role, txt) => {
-    const p = create("p", role === "ai" ? "sys" : "user");
+  function append(role, txt) {
+    const p = create("p", role === "ai" ? "sys"
+                        : role === "user" ? "user"
+                        : "sys");
     p.textContent = txt;
     chatBox.appendChild(p);
     chatBox.scrollTop = chatBox.scrollHeight;
-  };
-
-  const toBase64 = file =>
-    new Promise(res => {
-      const fr = new FileReader();
-      fr.onload = e => res(e.target.result.split(",")[1]);
-      fr.readAsDataURL(file);
-    });
+  }
 }
