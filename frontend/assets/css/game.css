@@ -1,0 +1,16 @@
+/* =========================================================================
+   Gym-RPG · Hoja de estilos específica
+   ========================================================================= */
+
+#rpg-root{display:flex;flex-direction:column;gap:1rem}
+.rpg-flex{display:flex;align-items:center;gap:.75rem}
+.avatar{display:inline-block;background:#374151;border-radius:50%;width:64px;height:64px;
+        text-align:center;line-height:64px;font-size:1.6rem;margin-right:.75rem}
+.stat{display:inline-block;width:7rem}.stat b{float:right}
+
+#chat{flex:1;min-height:240px;overflow-y:auto;background:#111827;color:#e2e8f0;
+      padding:1rem;border-radius:8px;font-size:.92rem}
+.msg{margin:.4rem 0}.sys{color:#93c5fd}.user{color:#facc15}
+
+#arena{display:none;align-items:center;gap:1rem}
+#arena img{width:96px;height:96px;border:2px solid #555;border-radius:8px}

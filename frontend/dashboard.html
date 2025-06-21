@@ -1,48 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Gym Tracker · Panel</title>
 
-  <!-- hoja de estilos -->
+  <!-- hojas de estilo -->
   <link rel="stylesheet" href="assets/css/styles.css" />
-
-  <!-- YouTube IFrame API (global) -->
-  <!-- ✓ BORRA esta línea -->
-  <!-- <script src="https://www.youtube.com/iframe_api"></script> -->
+  <link rel="stylesheet" href="assets/css/game.css" />
 
   <!-- PWA -->
-  <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#8b5cf6">
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#8b5cf6" />
 </head>
 
 <body class="bg-gray-100 min-h-screen">
 
-  <!-- ───── Navbar base ───── -->
+  <!-- ───── Navbar ───── -->
   <nav class="navbar">
     <span class="brand">Gym Tracker</span>
 
     <div class="tabs">
-      <a href="#profile" class="tab">Perfil</a>
-      <a href="#stats" class="tab">Medidas</a>
+      <a href="#profile"  class="tab">Perfil</a>
+      <a href="#stats"    class="tab">Medidas</a>
       <a href="#machines" class="tab">Máquinas</a>
-      <a href="#daily" class="tab">Diario</a>
-      <a href="#reports" class="tab">Informes</a>
+      <a href="#daily"    class="tab">Diario</a>
+      <a href="#reports"  class="tab">Informes</a>
+      <a href="#rpg"      class="tab">RPG</a>          <!-- ← NUEVA pestaña -->
     </div>
 
     <button id="logout" class="btn-danger">Salir</button>
   </nav>
 
-  <!-- contenedor de vistas -->
+  <!-- contenedor dinámico -->
   <main id="view-container" class="p-6 grid gap-6"></main>
 
-  <!-- overlay cargando (lo crea utils.js) -->
-  <!-- <div id="loader-overlay" class="hidden"><div class="spinner"></div></div> -->
+  <!-- overlay “cargando” (lo controla utils.js) -->
+  <div id="loader-overlay" class="hidden">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- host opcional para combates RPG -->
+  <div id="arena-host"></div>
 
   <!-- script principal -->
   <script type="module" src="assets/js/main.js"></script>
 </body>
-
 </html>
