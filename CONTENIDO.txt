@@ -1,0 +1,1967 @@
+--- E:/Desarrollo/Programas/AppGYM\backend\pom.xml ---
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.example</groupId>
+  <artifactId>gymapp</artifactId>
+  <version>1.0.0</version>
+
+  <!-- ────────── Propiedades globales ────────── -->
+  <properties>
+    <java.version>17</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+
+    <spring.boot.version>3.3.0</spring.boot.version>
+    <jjwt.version>0.11.5</jjwt.version>
+  </properties>
+
+  <!-- ────────── BOM Spring Boot ────────── -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring.boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <!-- ────────── Dependencias ────────── -->
+  <dependencies>
+    <!-- Web & JPA -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+
+    <!-- Seguridad -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+
+    <!-- JWT -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+      <version>${jjwt.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <version>${jjwt.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-jackson</artifactId>
+      <version>${jjwt.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- MySQL -->
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- Validación -->
+    <dependency>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
+    </dependency>
+
+    <!-- Lombok -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.32</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Actuator & PDFBox -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>2.0.30</version>
+    </dependency>
+  </dependencies>
+
+  <!-- ────────── Build ────────── -->
+  <build>
+    <plugins>
+      <!-- Empaqueta el jar -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals><goal>repackage</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Compilador: Java 17 + flag -parameters -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <source>17</source>
+          <target>17</target>
+          <compilerArgs>
+            <arg>-parameters</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+
+
+--- E:/Desarrollo/Programas/AppGYM\backend\.idea\compiler.xml ---
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="AppGYM" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="AppGYM" options="-parameters" />
+    </option>
+  </component>
+</project>
+
+--- E:/Desarrollo/Programas/AppGYM\backend\.idea\encodings.xml ---
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+  </component>
+</project>
+
+--- E:/Desarrollo/Programas/AppGYM\backend\.idea\jarRepositories.xml ---
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteRepositoriesConfiguration">
+    <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="Central Repository" />
+      <option name="url" value="https://repo.maven.apache.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="Maven Central repository" />
+      <option name="url" value="https://repo1.maven.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="jboss.community" />
+      <option name="name" value="JBoss Community repository" />
+      <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
+    </remote-repository>
+  </component>
+</project>
+
+--- E:/Desarrollo/Programas/AppGYM\backend\.idea\misc.xml ---
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/pom.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="corretto-21" project-jdk-type="JavaSDK" />
+</project>
+
+--- E:/Desarrollo/Programas/AppGYM\backend\.idea\vcs.xml ---
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
+  </component>
+</project>
+
+--- E:/Desarrollo/Programas/AppGYM\backend\.idea\workspace.xml ---
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="5b030e0e-7c77-4be5-8d1e-763d82a9e5d2" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 7
+}]]></component>
+  <component name="ProjectId" id="2yYErmibYiJdjFpXUOrOzgI6Ro2" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Maven.gymapp [clean].executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "E:/Desarrollo/Programas/AppGYM/backend"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5b030e0e-7c77-4be5-8d1e-763d82a9e5d2" name="Changes" comment="" />
+      <created>1750003308054</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1750003308054</updated>
+    </task>
+    <servers />
+  </component>
+</project>
+
+--- E:/Desarrollo/Programas/AppGYM\backend\.mvn\wrapper\maven-wrapper.properties ---
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+wrapperVersion=3.3.2
+distributionType=only-script
+distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.10/apache-maven-3.9.10-bin.zip
+
+
+--- E:/Desarrollo/Programas/AppGYM\backend\src\main\resources\application.properties ---
+# ?????????????????????  Datasource (Railway) ?????????????????????
+spring.datasource.url=${SPRING_DATASOURCE_URL}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+
+# ?????????????????????  JPA / Hibernate ??????????????????????????
+# spring.jpa.hibernate.ddl-auto=create   # ? solo si quieres recrear todo
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+
+# ?????????????????????  JWT  &  reCAPTCHA ????????????????????????
+jwt.secret=${JWT_SECRET}
+recaptcha.secret=${RECAPTCHA_SECRET}
+
+# ?????????????????????  CORS  (Netlify front-end) ????????????????
+spring.web.cors.allowed-origins=https://appgymregistro.netlify.app
+
+# ?????????????????????  Actuator (health checks) ?????????????????
+management.endpoints.web.exposure.include=health
+management.endpoint.health.probes.enabled=true
+
+# ?????????????????????  Seguridad / Spring Security ?????????????
+spring.main.allow-bean-definition-overriding=false
+
+# ?????????????????????  LOGGING  ?????????????????????????????????
+logging.level.root=INFO
+
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+logging.level.org.springframework.web=DEBUG
+
+logging.level.com.example.AppGYM.repository=DEBUG
+logging.level.com.example.AppGYM.service=DEBUG
+logging.level.com.example.AppGYM.controller.PhotoController=DEBUG
+logging.level.com.example.AppGYM.service.StorageService=DEBUG
+
+logging.level.com.example.AppGYM.service.PdfService=TRACE
+
+logging.level.org.springframework.security=TRACE
+logging.level.com.example.AppGYM.controller.DailyEntryController=DEBUG
+
+spring.mvc.log-request-details=true
+
+# ?????????????????????  multipart (upload fotos) ?????????????????
+spring.servlet.multipart.max-file-size=5MB
+spring.servlet.multipart.max-request-size=5MB
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\dashboard.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gym Tracker · Panel</title>
+
+  <!-- hojas de estilo -->
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <link rel="stylesheet" href="assets/css/game.css" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#8b5cf6" />
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- ───── Navbar ───── -->
+  <nav class="navbar">
+    <span class="brand">Gym Tracker</span>
+
+    <div class="tabs">
+      <a href="#profile"  class="tab">Perfil</a>
+      <a href="#stats"    class="tab">Medidas</a>
+      <a href="#machines" class="tab">Máquinas</a>
+      <a href="#daily"    class="tab">Diario</a>
+      <a href="#reports"  class="tab">Informes</a>
+      <a href="#rpg"      class="tab">RPG</a>          <!-- ← NUEVA pestaña -->
+    </div>
+
+    <button id="logout" class="btn-danger">Salir</button>
+  </nav>
+
+  <!-- contenedor dinámico -->
+  <main id="view-container" class="p-6 grid gap-6"></main>
+
+  <!-- overlay “cargando” (lo controla utils.js) -->
+  <div id="loader-overlay" class="hidden">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- host opcional para combates RPG -->
+  <div id="arena-host"></div>
+
+  <!-- script principal -->
+  <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\index.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gym Tracker · Acceso</title>
+
+  <!-- estilos -->
+  <link rel="stylesheet" href="assets/css/styles.css" />
+
+  <!-- P-W-A -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#8b5cf6">
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <div class="container">
+    <h1 id="form-title" class="title">Iniciar sesión</h1>
+
+    <form id="auth-form" class="space-y-4">
+      <input id="email"    class="input" type="email"    placeholder="Correo" required />
+      <input id="password" class="input" type="password" placeholder="Contraseña" minlength="8" required />
+      <!-- este campo solo debe mostrarse en modo “register” -->
+      <input id="confirm"
+       class="input"
+       type="password"
+       placeholder="Repite tu contraseña"
+       hidden>
+      <button id="submit-btn" class="btn w-full">Entrar</button>
+    </form>
+
+    <p class="text-center text-sm mt-4">
+      <a id="toggle-link" href="#" class="link">
+        ¿No tienes cuenta? Regístrate
+      </a>
+    </p>
+  </div>
+
+  <script type="module" src="assets/js/auth.js"></script>
+</body>
+</html>
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\sw.js ---
+// assets/js/utils.js  (lugar único de registro SW)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    // SW nuevo ya descargado y listo para activar
+    if (reg.waiting) askRefresh(reg);
+
+    // SW nuevo se descarga mientras la app está abierta
+    reg.addEventListener('updatefound', () => {
+      reg.installing.addEventListener('statechange', () => {
+        if (reg.waiting) askRefresh(reg);
+      });
+    });
+  });
+}
+
+function askRefresh(reg){
+  reg.waiting.postMessage({type:'SKIP_WAITING'});       // activa
+  reg.waiting.addEventListener('statechange', e=>{
+    if(e.target.state==='activated') location.reload(); // página fresca
+  });
+}
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\workbox-config.js ---
+/* ------------------------------------------------------------------
+   Workbox 7 - Config · Gym-Tracker PWA
+   ------------------------------------------------------------------ */
+module.exports = {
+  /* —— Qué ficheros precachear ——————————————— */
+  globDirectory : './',
+  globPatterns  : [
+    '**/*.{css,js,html,webmanifest,json,png,svg}'
+  ],
+
+  /* —— Salida del service-worker ———————————— */
+  swDest  : 'sw.js',
+
+  /* —— Parámetros a ignorar en la URL ————————— */
+  ignoreURLParametersMatching: [/^utm_/, /^fbclid$/],
+
+  /* —— Estrategias runtime (lo que NO va en precache) ———————— */
+  runtimeCaching: [
+    /* Páginas de navegación (SPA) */
+    {
+      urlPattern: ({request}) => request.mode === 'navigate',
+      handler   : 'NetworkFirst',
+      options   : { cacheName: 'pages' }
+    },
+
+    /* CSS actualizado en caliente  */
+    {
+      urlPattern: ({request}) => request.destination === 'style',
+      handler   : 'NetworkFirst',
+      options   : { cacheName: 'styles' }
+    },
+
+    /* Llamadas GET a tu API */
+    {
+      urlPattern: ({url, request}) =>
+        url.pathname.startsWith('/api/') && request.method === 'GET',
+      handler   : 'StaleWhileRevalidate',
+      options   : { cacheName: 'api' }
+    }
+  ],
+
+  /* —— Borra caches antiguas que ya no estén listadas ———————— */
+  cleanupOutdatedCaches: true
+};
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\workbox-f504bed1.js ---
+define(["exports"],function(t){"use strict";try{self["workbox:core:7.2.0"]&&_()}catch(t){}const e=(t,...e)=>{let s=t;return e.length>0&&(s+=` :: ${JSON.stringify(e)}`),s};class s extends Error{constructor(t,s){super(e(t,s)),this.name=t,this.details=s}}try{self["workbox:routing:7.2.0"]&&_()}catch(t){}const n=t=>t&&"object"==typeof t?t:{handle:t};class r{constructor(t,e,s="GET"){this.handler=n(e),this.match=t,this.method=s}setCatchHandler(t){this.catchHandler=n(t)}}class i extends r{constructor(t,e,s){super(({url:e})=>{const s=t.exec(e.href);if(s&&(e.origin===location.origin||0===s.index))return s.slice(1)},e,s)}}class o{constructor(){this.t=new Map,this.i=new Map}get routes(){return this.t}addFetchListener(){self.addEventListener("fetch",t=>{const{request:e}=t,s=this.handleRequest({request:e,event:t});s&&t.respondWith(s)})}addCacheListener(){self.addEventListener("message",t=>{if(t.data&&"CACHE_URLS"===t.data.type){const{payload:e}=t.data,s=Promise.all(e.urlsToCache.map(e=>{"string"==typeof e&&(e=[e]);const s=new Request(...e);return this.handleRequest({request:s,event:t})}));t.waitUntil(s),t.ports&&t.ports[0]&&s.then(()=>t.ports[0].postMessage(!0))}})}handleRequest({request:t,event:e}){const s=new URL(t.url,location.href);if(!s.protocol.startsWith("http"))return;const n=s.origin===location.origin,{params:r,route:i}=this.findMatchingRoute({event:e,request:t,sameOrigin:n,url:s});let o=i&&i.handler;const a=t.method;if(!o&&this.i.has(a)&&(o=this.i.get(a)),!o)return;let c;try{c=o.handle({url:s,request:t,event:e,params:r})}catch(t){c=Promise.reject(t)}const h=i&&i.catchHandler;return c instanceof Promise&&(this.o||h)&&(c=c.catch(async n=>{if(h)try{return await h.handle({url:s,request:t,event:e,params:r})}catch(t){t instanceof Error&&(n=t)}if(this.o)return this.o.handle({url:s,request:t,event:e});throw n})),c}findMatchingRoute({url:t,sameOrigin:e,request:s,event:n}){const r=this.t.get(s.method)||[];for(const i of r){let r;const o=i.match({url:t,sameOrigin:e,request:s,event:n});if(o)return r=o,(Array.isArray(r)&&0===r.length||o.constructor===Object&&0===Object.keys(o).length||"boolean"==typeof o)&&(r=void 0),{route:i,params:r}}return{}}setDefaultHandler(t,e="GET"){this.i.set(e,n(t))}setCatchHandler(t){this.o=n(t)}registerRoute(t){this.t.has(t.method)||this.t.set(t.method,[]),this.t.get(t.method).push(t)}unregisterRoute(t){if(!this.t.has(t.method))throw new s("unregister-route-but-not-found-with-method",{method:t.method});const e=this.t.get(t.method).indexOf(t);if(!(e>-1))throw new s("unregister-route-route-not-registered");this.t.get(t.method).splice(e,1)}}let a;const c=()=>(a||(a=new o,a.addFetchListener(),a.addCacheListener()),a);function h(t,e,n){let o;if("string"==typeof t){const s=new URL(t,location.href);o=new r(({url:t})=>t.href===s.href,e,n)}else if(t instanceof RegExp)o=new i(t,e,n);else if("function"==typeof t)o=new r(t,e,n);else{if(!(t instanceof r))throw new s("unsupported-route-type",{moduleName:"workbox-routing",funcName:"registerRoute",paramName:"capture"});o=t}return c().registerRoute(o),o}try{self["workbox:strategies:7.2.0"]&&_()}catch(t){}const u={cacheWillUpdate:async({response:t})=>200===t.status||0===t.status?t:null},l={googleAnalytics:"googleAnalytics",precache:"precache-v2",prefix:"workbox",runtime:"runtime",suffix:"undefined"!=typeof registration?registration.scope:""},f=t=>[l.prefix,t,l.suffix].filter(t=>t&&t.length>0).join("-"),w=t=>t||f(l.precache),d=t=>t||f(l.runtime);function p(t,e){const s=new URL(t);for(const t of e)s.searchParams.delete(t);return s.href}class y{constructor(){this.promise=new Promise((t,e)=>{this.resolve=t,this.reject=e})}}const g=new Set;function m(t){return"string"==typeof t?new Request(t):t}class R{constructor(t,e){this.h={},Object.assign(this,e),this.event=e.event,this.u=t,this.l=new y,this.p=[],this.m=[...t.plugins],this.R=new Map;for(const t of this.m)this.R.set(t,{});this.event.waitUntil(this.l.promise)}async fetch(t){const{event:e}=this;let n=m(t);if("navigate"===n.mode&&e instanceof FetchEvent&&e.preloadResponse){const t=await e.preloadResponse;if(t)return t}const r=this.hasCallback("fetchDidFail")?n.clone():null;try{for(const t of this.iterateCallbacks("requestWillFetch"))n=await t({request:n.clone(),event:e})}catch(t){if(t instanceof Error)throw new s("plugin-error-request-will-fetch",{thrownErrorMessage:t.message})}const i=n.clone();try{let t;t=await fetch(n,"navigate"===n.mode?void 0:this.u.fetchOptions);for(const s of this.iterateCallbacks("fetchDidSucceed"))t=await s({event:e,request:i,response:t});return t}catch(t){throw r&&await this.runCallbacks("fetchDidFail",{error:t,event:e,originalRequest:r.clone(),request:i.clone()}),t}}async fetchAndCachePut(t){const e=await this.fetch(t),s=e.clone();return this.waitUntil(this.cachePut(t,s)),e}async cacheMatch(t){const e=m(t);let s;const{cacheName:n,matchOptions:r}=this.u,i=await this.getCacheKey(e,"read"),o=Object.assign(Object.assign({},r),{cacheName:n});s=await caches.match(i,o);for(const t of this.iterateCallbacks("cachedResponseWillBeUsed"))s=await t({cacheName:n,matchOptions:r,cachedResponse:s,request:i,event:this.event})||void 0;return s}async cachePut(t,e){const n=m(t);var r;await(r=0,new Promise(t=>setTimeout(t,r)));const i=await this.getCacheKey(n,"write");if(!e)throw new s("cache-put-with-no-response",{url:(o=i.url,new URL(String(o),location.href).href.replace(new RegExp(`^${location.origin}`),""))});var o;const a=await this.v(e);if(!a)return!1;const{cacheName:c,matchOptions:h}=this.u,u=await self.caches.open(c),l=this.hasCallback("cacheDidUpdate"),f=l?await async function(t,e,s,n){const r=p(e.url,s);if(e.url===r)return t.match(e,n);const i=Object.assign(Object.assign({},n),{ignoreSearch:!0}),o=await t.keys(e,i);for(const e of o)if(r===p(e.url,s))return t.match(e,n)}(u,i.clone(),["__WB_REVISION__"],h):null;try{await u.put(i,l?a.clone():a)}catch(t){if(t instanceof Error)throw"QuotaExceededError"===t.name&&await async function(){for(const t of g)await t()}(),t}for(const t of this.iterateCallbacks("cacheDidUpdate"))await t({cacheName:c,oldResponse:f,newResponse:a.clone(),request:i,event:this.event});return!0}async getCacheKey(t,e){const s=`${t.url} | ${e}`;if(!this.h[s]){let n=t;for(const t of this.iterateCallbacks("cacheKeyWillBeUsed"))n=m(await t({mode:e,request:n,event:this.event,params:this.params}));this.h[s]=n}return this.h[s]}hasCallback(t){for(const e of this.u.plugins)if(t in e)return!0;return!1}async runCallbacks(t,e){for(const s of this.iterateCallbacks(t))await s(e)}*iterateCallbacks(t){for(const e of this.u.plugins)if("function"==typeof e[t]){const s=this.R.get(e),n=n=>{const r=Object.assign(Object.assign({},n),{state:s});return e[t](r)};yield n}}waitUntil(t){return this.p.push(t),t}async doneWaiting(){let t;for(;t=this.p.shift();)await t}destroy(){this.l.resolve(null)}async v(t){let e=t,s=!1;for(const t of this.iterateCallbacks("cacheWillUpdate"))if(e=await t({request:this.request,response:e,event:this.event})||void 0,s=!0,!e)break;return s||e&&200!==e.status&&(e=void 0),e}}class v{constructor(t={}){this.cacheName=d(t.cacheName),this.plugins=t.plugins||[],this.fetchOptions=t.fetchOptions,this.matchOptions=t.matchOptions}handle(t){const[e]=this.handleAll(t);return e}handleAll(t){t instanceof FetchEvent&&(t={event:t,request:t.request});const e=t.event,s="string"==typeof t.request?new Request(t.request):t.request,n="params"in t?t.params:void 0,r=new R(this,{event:e,request:s,params:n}),i=this.q(r,s,e);return[i,this.U(i,r,s,e)]}async q(t,e,n){let r;await t.runCallbacks("handlerWillStart",{event:n,request:e});try{if(r=await this.L(e,t),!r||"error"===r.type)throw new s("no-response",{url:e.url})}catch(s){if(s instanceof Error)for(const i of t.iterateCallbacks("handlerDidError"))if(r=await i({error:s,event:n,request:e}),r)break;if(!r)throw s}for(const s of t.iterateCallbacks("handlerWillRespond"))r=await s({event:n,request:e,response:r});return r}async U(t,e,s,n){let r,i;try{r=await t}catch(i){}try{await e.runCallbacks("handlerDidRespond",{event:n,request:s,response:r}),await e.doneWaiting()}catch(t){t instanceof Error&&(i=t)}if(await e.runCallbacks("handlerDidComplete",{event:n,request:s,response:r,error:i}),e.destroy(),i)throw i}}function q(t,e){const s=e();return t.waitUntil(s),s}try{self["workbox:precaching:7.2.0"]&&_()}catch(t){}function U(t){if(!t)throw new s("add-to-cache-list-unexpected-type",{entry:t});if("string"==typeof t){const e=new URL(t,location.href);return{cacheKey:e.href,url:e.href}}const{revision:e,url:n}=t;if(!n)throw new s("add-to-cache-list-unexpected-type",{entry:t});if(!e){const t=new URL(n,location.href);return{cacheKey:t.href,url:t.href}}const r=new URL(n,location.href),i=new URL(n,location.href);return r.searchParams.set("__WB_REVISION__",e),{cacheKey:r.href,url:i.href}}class L{constructor(){this.updatedURLs=[],this.notUpdatedURLs=[],this.handlerWillStart=async({request:t,state:e})=>{e&&(e.originalRequest=t)},this.cachedResponseWillBeUsed=async({event:t,state:e,cachedResponse:s})=>{if("install"===t.type&&e&&e.originalRequest&&e.originalRequest instanceof Request){const t=e.originalRequest.url;s?this.notUpdatedURLs.push(t):this.updatedURLs.push(t)}return s}}}class b{constructor({precacheController:t}){this.cacheKeyWillBeUsed=async({request:t,params:e})=>{const s=(null==e?void 0:e.cacheKey)||this._.getCacheKeyForURL(t.url);return s?new Request(s,{headers:t.headers}):t},this._=t}}let E,C;async function x(t,e){let n=null;if(t.url){n=new URL(t.url).origin}if(n!==self.location.origin)throw new s("cross-origin-copy-response",{origin:n});const r=t.clone(),i={headers:new Headers(r.headers),status:r.status,statusText:r.statusText},o=e?e(i):i,a=function(){if(void 0===E){const t=new Response("");if("body"in t)try{new Response(t.body),E=!0}catch(t){E=!1}E=!1}return E}()?r.body:await r.blob();return new Response(a,o)}class O extends v{constructor(t={}){t.cacheName=w(t.cacheName),super(t),this.C=!1!==t.fallbackToNetwork,this.plugins.push(O.copyRedirectedCacheableResponsesPlugin)}async L(t,e){const s=await e.cacheMatch(t);return s||(e.event&&"install"===e.event.type?await this.O(t,e):await this.N(t,e))}async N(t,e){let n;const r=e.params||{};if(!this.C)throw new s("missing-precache-entry",{cacheName:this.cacheName,url:t.url});{const s=r.integrity,i=t.integrity,o=!i||i===s;n=await e.fetch(new Request(t,{integrity:"no-cors"!==t.mode?i||s:void 0})),s&&o&&"no-cors"!==t.mode&&(this.P(),await e.cachePut(t,n.clone()))}return n}async O(t,e){this.P();const n=await e.fetch(t);if(!await e.cachePut(t,n.clone()))throw new s("bad-precaching-response",{url:t.url,status:n.status});return n}P(){let t=null,e=0;for(const[s,n]of this.plugins.entries())n!==O.copyRedirectedCacheableResponsesPlugin&&(n===O.defaultPrecacheCacheabilityPlugin&&(t=s),n.cacheWillUpdate&&e++);0===e?this.plugins.push(O.defaultPrecacheCacheabilityPlugin):e>1&&null!==t&&this.plugins.splice(t,1)}}O.defaultPrecacheCacheabilityPlugin={cacheWillUpdate:async({response:t})=>!t||t.status>=400?null:t},O.copyRedirectedCacheableResponsesPlugin={cacheWillUpdate:async({response:t})=>t.redirected?await x(t):t};class N{constructor({cacheName:t,plugins:e=[],fallbackToNetwork:s=!0}={}){this.T=new Map,this.W=new Map,this.k=new Map,this.u=new O({cacheName:w(t),plugins:[...e,new b({precacheController:this})],fallbackToNetwork:s}),this.install=this.install.bind(this),this.activate=this.activate.bind(this)}get strategy(){return this.u}precache(t){this.addToCacheList(t),this.K||(self.addEventListener("install",this.install),self.addEventListener("activate",this.activate),this.K=!0)}addToCacheList(t){const e=[];for(const n of t){"string"==typeof n?e.push(n):n&&void 0===n.revision&&e.push(n.url);const{cacheKey:t,url:r}=U(n),i="string"!=typeof n&&n.revision?"reload":"default";if(this.T.has(r)&&this.T.get(r)!==t)throw new s("add-to-cache-list-conflicting-entries",{firstEntry:this.T.get(r),secondEntry:t});if("string"!=typeof n&&n.integrity){if(this.k.has(t)&&this.k.get(t)!==n.integrity)throw new s("add-to-cache-list-conflicting-integrities",{url:r});this.k.set(t,n.integrity)}if(this.T.set(r,t),this.W.set(r,i),e.length>0){const t=`Workbox is precaching URLs without revision info: ${e.join(", ")}\nThis is generally NOT safe. Learn more at https://bit.ly/wb-precache`;console.warn(t)}}}install(t){return q(t,async()=>{const e=new L;this.strategy.plugins.push(e);for(const[e,s]of this.T){const n=this.k.get(s),r=this.W.get(e),i=new Request(e,{integrity:n,cache:r,credentials:"same-origin"});await Promise.all(this.strategy.handleAll({params:{cacheKey:s},request:i,event:t}))}const{updatedURLs:s,notUpdatedURLs:n}=e;return{updatedURLs:s,notUpdatedURLs:n}})}activate(t){return q(t,async()=>{const t=await self.caches.open(this.strategy.cacheName),e=await t.keys(),s=new Set(this.T.values()),n=[];for(const r of e)s.has(r.url)||(await t.delete(r),n.push(r.url));return{deletedURLs:n}})}getURLsToCacheKeys(){return this.T}getCachedURLs(){return[...this.T.keys()]}getCacheKeyForURL(t){const e=new URL(t,location.href);return this.T.get(e.href)}getIntegrityForCacheKey(t){return this.k.get(t)}async matchPrecache(t){const e=t instanceof Request?t.url:t,s=this.getCacheKeyForURL(e);if(s){return(await self.caches.open(this.strategy.cacheName)).match(s)}}createHandlerBoundToURL(t){const e=this.getCacheKeyForURL(t);if(!e)throw new s("non-precached-url",{url:t});return s=>(s.request=new Request(t),s.params=Object.assign({cacheKey:e},s.params),this.strategy.handle(s))}}const P=()=>(C||(C=new N),C);class T extends r{constructor(t,e){super(({request:s})=>{const n=t.getURLsToCacheKeys();for(const r of function*(t,{ignoreURLParametersMatching:e=[/^utm_/,/^fbclid$/],directoryIndex:s="index.html",cleanURLs:n=!0,urlManipulation:r}={}){const i=new URL(t,location.href);i.hash="",yield i.href;const o=function(t,e=[]){for(const s of[...t.searchParams.keys()])e.some(t=>t.test(s))&&t.searchParams.delete(s);return t}(i,e);if(yield o.href,s&&o.pathname.endsWith("/")){const t=new URL(o.href);t.pathname+=s,yield t.href}if(n){const t=new URL(o.href);t.pathname+=".html",yield t.href}if(r){const t=r({url:i});for(const e of t)yield e.href}}(s.url,e)){const e=n.get(r);if(e){return{cacheKey:e,integrity:t.getIntegrityForCacheKey(e)}}}},t.strategy)}}t.NetworkFirst=class extends v{constructor(t={}){super(t),this.plugins.some(t=>"cacheWillUpdate"in t)||this.plugins.unshift(u),this.j=t.networkTimeoutSeconds||0}async L(t,e){const n=[],r=[];let i;if(this.j){const{id:s,promise:o}=this.M({request:t,logs:n,handler:e});i=s,r.push(o)}const o=this.S({timeoutId:i,request:t,logs:n,handler:e});r.push(o);const a=await e.waitUntil((async()=>await e.waitUntil(Promise.race(r))||await o)());if(!a)throw new s("no-response",{url:t.url});return a}M({request:t,logs:e,handler:s}){let n;return{promise:new Promise(e=>{n=setTimeout(async()=>{e(await s.cacheMatch(t))},1e3*this.j)}),id:n}}async S({timeoutId:t,request:e,logs:s,handler:n}){let r,i;try{i=await n.fetchAndCachePut(e)}catch(t){t instanceof Error&&(r=t)}return t&&clearTimeout(t),!r&&i||(i=await n.cacheMatch(e)),i}},t.StaleWhileRevalidate=class extends v{constructor(t={}){super(t),this.plugins.some(t=>"cacheWillUpdate"in t)||this.plugins.unshift(u)}async L(t,e){const n=e.fetchAndCachePut(t).catch(()=>{});e.waitUntil(n);let r,i=await e.cacheMatch(t);if(i);else try{i=await n}catch(t){t instanceof Error&&(r=t)}if(!i)throw new s("no-response",{url:t.url,error:r});return i}},t.precacheAndRoute=function(t,e){!function(t){P().precache(t)}(t),function(t){const e=P();h(new T(e,t))}(e)},t.registerRoute=h});
+//# sourceMappingURL=workbox-f504bed1.js.map
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\css\game.css ---
+/* =========================================================================
+   Gym-RPG · Hoja de estilos específica
+   ========================================================================= */
+
+#rpg-root{display:flex;flex-direction:column;gap:1rem}
+.rpg-flex{display:flex;align-items:center;gap:.75rem}
+.avatar{display:inline-block;background:#374151;border-radius:50%;width:64px;height:64px;
+        text-align:center;line-height:64px;font-size:1.6rem;margin-right:.75rem}
+.stat{display:inline-block;width:7rem}.stat b{float:right}
+
+#chat{flex:1;min-height:240px;overflow-y:auto;background:#111827;color:#e2e8f0;
+      padding:1rem;border-radius:8px;font-size:.92rem}
+.msg{margin:.4rem 0}.sys{color:#93c5fd}.user{color:#facc15}
+
+#arena{display:none;align-items:center;gap:1rem}
+#arena img{width:96px;height:96px;border:2px solid #555;border-radius:8px}
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\css\styles.css ---
+/* =========================================================================
+   GYM-TRACKER · Hoja de estilos 2025 · v2  (Quick-Add + temporizador + loader)
+   Re-responsive  •  Centered Layout  •  Micro-animations  •  SEO friendly
+   ========================================================================= */
+
+/* ---------------------------  RESET LIGERO  --------------------------- */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{line-height:1.5;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+img,svg,video,canvas{max-width:100%;display:block;}
+
+/* ----------------------------  VARIABLES  ---------------------------- */
+:root{
+  --h-header : 3.5rem;
+  --radius   : 12px;
+  --shadow   : 0 6px 14px rgb(0 0 0 / .12);
+  --dur      : .25s;
+
+  /* Paleta (claro) */
+  --c-gradient-s:#2b2a82;
+  --c-gradient-e:#6a1bff;
+  --c-surface  :#ffffff;
+  --c-surface2 :#f0f4ff;
+  --c-text     :#1e293b;
+  --c-text-inv :#f1f5f9;
+  --c-primary  :#8b5cf6;
+  --c-primary-h:#7c3aed;
+  --c-danger   :#dc2626;
+  --c-danger-h :#b91c1c;
+  --c-muted    :#64748b;          /* para celdas vacías */
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --c-gradient-s:#16184b;
+    --c-gradient-e:#402ca0;
+    --c-surface  :#1e2537;
+    --c-surface2 :#24304c;
+    --c-text     :#e2e8f0;
+    --c-muted    :#94a3b8;
+  }
+}
+
+/* ----------------------------  LAYOUT BASE --------------------------- */
+html,body{min-height:100%;}
+body{
+  background:linear-gradient(135deg,var(--c-gradient-s),var(--c-gradient-e));
+  color:var(--c-text);
+  display:flex; flex-direction:column;
+  padding-top:env(safe-area-inset-top);
+}
+#view-container>*{width:100%;max-width:1200px;margin-inline:auto;}
+
+a,button,input,select,th,td{transition:background var(--dur),color var(--dur);}
+
+/* -------------------------  COMPONENTES UI  -------------------------- */
+.input{width:100%;padding:.55rem .75rem;border:1px solid #cbd5e1;border-radius:.5rem;background:var(--c-surface);color:inherit;}
+.btn{background:var(--c-primary);color:#fff;padding:.55rem 1.25rem;border:none;border-radius:.5rem;cursor:pointer;font-weight:600;}
+.btn:hover{background:var(--c-primary-h);}
+.btn-danger{background:var(--c-danger);color:#fff;padding:.4rem .9rem;border-radius:.4rem;}
+.btn-danger:hover{background:var(--c-danger-h);}
+.btn-icon{padding:.35rem .55rem;line-height:1;background:rgba(0,0,0,.15);color:var(--c-text-inv);border-radius:.35rem;}
+.btn-icon:hover{background:rgba(0,0,0,.25);}
+a{text-decoration:none;color:inherit;}
+.title{font-size:1.6rem;font-weight:700;margin-bottom:1.5rem;}
+
+/* Navbar */
+.navbar{
+  position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:1rem;
+  padding:.6rem 1rem;background:rgba(0,0,0,.15);backdrop-filter:blur(8px);
+  box-shadow:0 1px 4px rgb(0 0 0 /.2);
+}
+.brand{font-weight:700;color:var(--c-text-inv);}
+.tabs{display:flex;gap:.5rem;flex-wrap:wrap;flex:1 1 auto;justify-content:center;}
+.tab{padding:.45rem .75rem;border-radius:.5rem;color:var(--c-text-inv);}
+.tab:hover{background:rgba(255,255,255,.15);}
+.btn-logout{margin-left:auto;}
+
+/* Vistas */
+#view-container{flex:1;display:flex;flex-direction:column;gap:1.75rem;padding:1.25rem;}
+
+/* Tables */
+table{
+  width:100%;border-collapse:collapse;background:var(--c-surface);
+  border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);
+  color:var(--c-text);font-size:.95rem;
+}
+thead{background:rgba(0,0,0,.05);}
+th,td{padding:.65rem .75rem;text-align:left;}
+tbody tr:nth-child(odd){background:var(--c-surface2);}
+tbody tr:hover{background:rgba(0,0,0,.04);}
+@media(prefers-color-scheme:dark){thead{background:rgba(255,255,255,.05);}}
+
+/* Celdas vacías */
+td:empty::after{content:"—";color:var(--c-muted);}
+
+/* Card login */
+.container{width:100%;max-width:26rem;margin:auto;background:#1e293b;color:#f8fafc;padding:2rem;border-radius:1rem;box-shadow:var(--shadow);}
+
+/* Animaciones */
+@keyframes fade-up{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+.fade-in{animation:fade-up .4s cubic-bezier(.25,.8,.25,1) both;}
+tbody tr{animation:fade-up .3s ease-out both;animation-delay:.1s;}
+.tab,button{will-change:transform;} button:active{transform:scale(.96);}
+
+/* ---------- Loader global ---------- */
+#loader-overlay{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.35);backdrop-filter:blur(2px);z-index:999;
+}
+#loader-overlay.hidden{display:none;}
+#loader-overlay .spinner{
+  width:3.5rem;height:3.5rem;border-radius:50%;
+  border:.45rem solid rgba(255,255,255,.35);border-top-color:#ffffff;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ---------- Quick-Add & Temporizador ---------- */
+.fab{
+  position:fixed;bottom:1.5rem;right:1.5rem;width:3.5rem;height:3.5rem;border-radius:50%;
+  background:var(--c-primary);color:#fff;font-size:2rem;line-height:1;
+  display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);
+  transition:transform .2s,background .2s;z-index:50;
+}
+.fab:hover{background:var(--c-primary-h);transform:scale(1.07);}
+.fab:active{transform:scale(.94);}
+@media(max-width:640px){.fab{bottom:1rem;right:1rem;}}
+
+.timer{
+  font-variant-numeric:tabular-nums;font-weight:700;background:rgba(0,0,0,.15);
+  color:var(--c-text-inv);padding:.35rem .75rem;border-radius:.5rem;min-width:4rem;
+  text-align:center;transition:background .2s;
+}
+.timer.running{background:var(--c-danger);}
+
+/* ----------------------------  BREAKPOINTS --------------------------- */
+@media(max-width:640px){
+  .navbar{flex-wrap:wrap;justify-content:center;}
+  .btn-logout{order:3;width:100%;margin:0;padding:.5rem 0;}
+  .tabs{order:2;} .brand{order:1;width:100%;text-align:center;}
+  .tab{padding:.4rem .7rem;font-size:.875rem;}
+  .btn{padding:.5rem 1.1rem;}
+  table td:nth-child(3),table td:nth-child(4),
+  table th:nth-child(3),table th:nth-child(4){display:none;}
+}
+@media(min-width:641px){#view-container{padding:1.75rem 2rem;} .title{font-size:1.8rem;}}
+@media(min-width:1025px){#view-container{padding:2rem 3rem;} .navbar{padding:.75rem 1.5rem;} .title{font-size:1.9rem;} table{font-size:1rem;}}
+@media(min-width:1440px){.title{font-size:2rem;}}
+@media(spanning:single-fold-vertical){
+  body{padding-left:env(fold-left);padding-right:env(fold-right);}
+  #view-container{flex-direction:row;flex-wrap:wrap;column-gap:calc(env(fold-right)-env(fold-left));}
+}
+
+/* =========================================================================
+   FIN
+   ========================================================================= */
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\api.js ---
+import { API_BASE, authHeaders, showLoader, hideLoader, dbg } from "./utils.js";
+
+/* wrapper con logs */
+async function wrap (promise, info = '') {
+  showLoader();
+  dbg('API', info);
+  try {
+    const res = await promise;
+    dbg('API', info, res.status);
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    const ct = res.headers.get('content-type') || '';
+    return ct.includes('application/json') ? res.json()
+         : ct.startsWith('text/')          ? res.text()
+         :                                   res.blob();
+  } finally { hideLoader(); }
+}
+
+export const api = {
+  get : url            => wrap(fetch(API_BASE + url, { headers: authHeaders() }), 'GET ' + url),
+  post: (url, body)    => wrap(fetch(API_BASE + url, {
+                         method:'POST', headers:{ ...authHeaders(), 'Content-Type':'application/json' },
+                         body:JSON.stringify(body) }), 'POST ' + url),
+  put : (url, body)    => wrap(fetch(API_BASE + url, {
+                         method:'PUT', headers:{ ...authHeaders(), 'Content-Type':'application/json' },
+                         body:JSON.stringify(body) }), 'PUT ' + url),
+  del : url            => wrap(fetch(API_BASE + url, { method:'DELETE', headers: authHeaders() }), 'DEL ' + url)
+};
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\auth.js ---
+/* -------------------------------------------------------------------------
+   AUTH · login / registro
+   ------------------------------------------------------------------------- */
+import { API_BASE, TOKEN_KEY, qs, dbg } from "./utils.js";
+
+dbg('AUTH', 'init');
+
+/* --- elementos DOM --- */
+const form     = qs('#auth-form');
+const confirm  = qs('#confirm');
+const toggle   = qs('#toggle-link');
+const title    = qs('#form-title');
+const submitBt = qs('#submit-btn');
+
+let mode = 'login';          // estado inicial (login)
+
+/* --- alterna login / register --------------------------------------- */
+toggle.addEventListener('click', ev => {
+  ev.preventDefault();
+  mode = mode === 'login' ? 'register' : 'login';
+
+  /* añade/quita atributo hidden */
+  confirm.toggleAttribute('hidden', mode === 'login');
+
+  /* textos */
+  title.textContent    = mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
+  submitBt.textContent = mode === 'login' ? 'Entrar'         : 'Registrar';
+  toggle.textContent   = mode === 'login'
+    ? '¿No tienes cuenta? Regístrate'
+    : '¿Ya tienes cuenta? Inicia sesión';
+});
+
+/* --- envío ----------------------------------------------------------- */
+form.onsubmit = async ev => {
+  ev.preventDefault();
+  submitBt.disabled = true;
+  submitBt.textContent = '⏳ Enviando…';
+
+  try {
+    const body = { email: form.email.value, password: form.password.value };
+    if (mode === 'register') body.confirm = form.confirm.value;
+
+    const res = await fetch(`${API_BASE}/api/auth/${mode}`, {
+      method : 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body   : JSON.stringify(body)
+    });
+
+    if (!res.ok) { alert(await res.text()); return; }
+
+    const { token } = await res.json();
+    localStorage.setItem(TOKEN_KEY, token);
+    location.href = 'dashboard.html';
+
+  } catch (err) {
+    console.error(err);
+    alert('Error de red');
+  } finally {
+    submitBt.disabled  = false;
+    submitBt.textContent = mode === 'login' ? 'Entrar' : 'Registrar';
+  }
+};
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\main.js ---
+/* =========================================================================
+   Gym-Tracker · Main Router (sin Quick-Add, con vista RPG)
+   ========================================================================= */
+
+import { Router }            from './router.js';
+import { qs }                from './utils.js';
+import { api }               from './api.js';
+
+/* ------------ Vistas core ------------ */
+import { loadProfile }       from './views/profile.js';
+import { loadStats }         from './views/stats.js';
+import { loadMachines }      from './views/machines.js';
+import { loadDaily }         from './views/daily.js';
+import { loadReports }       from './views/reports.js';
+import { loadRpg }           from './views/rpg.js';   /* ← nueva */
+
+/* ------------ Extras ------------ */
+import { initAdvancedTimer } from './timer.js';
+
+/* —— Logout global —— */
+qs('#logout').onclick = () => {
+  localStorage.clear();
+  location.href = 'index.html';
+};
+
+/* —— Router SPA —— */
+new Router(
+  {
+    /* Perfil ----------------------------------------------------------- */
+    profile : loadProfile,
+
+    /* Medidas ---------------------------------------------------------- */
+    stats   : loadStats,
+
+    /* Máquinas --------------------------------------------------------- */
+    machines: loadMachines,
+
+    /* Diario + temporizador avanzado ---------------------------------- */
+    daily   : async container => {
+      const list = await api.get('/api/machines');
+      await loadDaily(container, list);
+      /* Temporizador anclado debajo del título “Registro diario” */
+      initAdvancedTimer(container.querySelector('.view-title'));
+    },
+
+    /* Informes PDF ----------------------------------------------------- */
+    reports : loadReports,
+
+    /* Gamificación RPG ------------------------------------------------- */
+    rpg     : loadRpg
+  },
+  qs('#view-container')
+);
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\router.js ---
+import { qs, dbg } from "./utils.js";
+
+export class Router {
+  constructor (views, container) {
+    this.views      = views;      // { hash : loaderFn }
+    this.container  = container;
+    window.addEventListener('hashchange', () => this.render());
+    this.render();
+  }
+
+  async render () {
+    const hash = location.hash.slice(1) || 'profile';
+    dbg('ROUTER', 'hash →', hash);
+
+    const load = this.views[hash];
+    if (!load) { dbg('ROUTER', '404 view', hash); return; }
+
+    this.container.innerHTML = '';
+    await load(this.container);
+  }
+}
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\timer.js ---
+/* =========================================================================
+   TIMER 2.3 · Cronómetro + Cuenta-atrás
+   Sonido (Web-Audio) + Vibración + Notif. persistente  +  Wake-Lock
+   Con LOGS dbg() para depuración
+   ========================================================================= */
+
+import { qs, create, dbg } from "./utils.js";
+
+/* ------------------------------------------------------------------ CONST */
+const VIB_PATTERN = new Array(10).fill([300, 300]).flat(); // 10 s tic-tac
+
+let ctx, osc, gain;                        // Web-Audio nodes
+
+/* ------------------------------------------------------------------ AUDIO */
+function startTone () {
+  dbg('TIMER', 'startTone()');
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (ctx.state === 'suspended') ctx.resume();
+
+  osc  = ctx.createOscillator();
+  gain = ctx.createGain();
+  gain.gain.value     = 0.12;          // volumen bajo
+  osc.frequency.value = 880;           // A5
+  osc.type            = 'square';
+
+  osc.connect(gain).connect(ctx.destination);
+  osc.start();
+}
+function stopTone () {
+  if (osc) { osc.stop(); osc.disconnect(); gain.disconnect(); dbg('TIMER', 'stopTone()'); }
+  osc = gain = null;
+}
+
+/* ------------------------------------------------------------------ WAKE-LOCK */
+let wakelock = null;
+async function keepAwake () {
+  try {
+    wakelock = await navigator.wakeLock?.request('screen');
+    dbg('TIMER', 'Wake-lock ON');
+  } catch { /* ignored */ }
+}
+function releaseAwake () {
+  wakelock?.release?.();
+  wakelock = null;
+  dbg('TIMER', 'Wake-lock OFF');
+}
+
+/* ------------------------------------------------------------------ UI */
+export function initAdvancedTimer (anchor) {
+  dbg('TIMER', 'initAdvancedTimer()', { anchor });
+
+  if (qs('#timer-box')) {
+    dbg('TIMER', 'Ya existía, skip');
+    return;                             // sólo uno por página
+  }
+
+  /* ------------- Mark-up ------------- */
+  const box = create('div', 'timer-box');
+  box.id = 'timer-box';
+  box.innerHTML = /*html*/`
+    <span  id="series-timer" class="timer">00:00:00</span>
+
+    <select id="timer-mode">
+      <option value="stopwatch">Cronómetro</option>
+      <option value="countdown">Cuenta atrás</option>
+    </select>
+
+    <input id="h" type="number" min="0" max="23" value="0" class="input w-16">
+    <span>:</span>
+    <input id="m" type="number" min="0" max="59" value="1" class="input w-16">
+    <span>:</span>
+    <input id="s" type="number" min="0" max="59" value="0" class="input w-16">
+
+    <select id="alert-mode">
+      <option value="sound">Sonido</option>
+      <option value="vibrate">Vibrar</option>
+      <option value="soundvib">Ambos</option>
+    </select>
+
+    <button id="btn-toggle" class="btn-icon" title="Iniciar">▶</button>
+    <button id="btn-reset"  class="btn-icon" title="Reset">⭯</button>
+  `;
+  anchor.after(box);
+
+  /* ------------- Elements ------------- */
+  const disp    = qs('#series-timer');
+  const modeSel = qs('#timer-mode');
+  const hIn     = qs('#h'),  mIn = qs('#m'),  sIn = qs('#s');
+  const toggle  = qs('#btn-toggle');
+  const reset   = qs('#btn-reset');
+  const alertEl = qs('#alert-mode');
+
+  /* ------------- State ------------- */
+  let id = null, start = 0, remain = 0, running = false;
+
+  /* ------------- Buttons ------------- */
+  toggle.onclick = () => running ? pause() : startTimer();
+  reset .onclick = hardReset;
+
+  /* ------------- Core ------------- */
+  function startTimer () {
+    dbg('TIMER', '▶ start', modeSel.value);
+    stopAlert(); keepAwake();
+
+    if (modeSel.value === 'stopwatch') {
+      start = Date.now() - remain;                  // resume si estaba pausado
+      id = setInterval(() => update(Date.now() - start), 1000);
+    } else {
+      remain = (+hIn.value * 3600 + +mIn.value * 60 + +sIn.value) * 1000;
+      if (remain <= 0) { dbg('TIMER', 'Cuenta atrás = 0'); return; }
+      update(remain);
+      id = setInterval(() => {
+        remain -= 1000;
+        update(remain);
+        if (remain <= 0) { clearInterval(id); id = null; fireAlert(); }
+      }, 1000);
+    }
+    running = true; toggle.textContent = '⏸';
+  }
+
+  function pause () {
+    dbg('TIMER', '⏸ pause');
+    clearInterval(id); id = null;
+    running = false; toggle.textContent = '▶';
+    releaseAwake();
+  }
+
+  function hardReset () {
+    dbg('TIMER', '⭯ reset hard');
+    pause(); remain = 0; update(0); stopAlert();
+  }
+
+  function update (ms) {
+    if (ms < 0) ms = 0;
+    const sec = (ms / 1000) | 0;
+    const hh  = String((sec / 3600)     | 0).padStart(2, '0');
+    const mm  = String(((sec / 60) % 60)| 0).padStart(2, '0');
+    const ss  = String(sec % 60).padStart(2, '0');
+    disp.textContent = `${hh}:${mm}:${ss}`;
+    disp.classList.toggle('running', running);
+  }
+
+  /* ------------- Alerts ------------- */
+  function fireAlert () {
+    dbg('TIMER', '💥 ALERT', alertEl.value);
+    running = false; toggle.textContent = '▶'; releaseAwake();
+
+    const mode = alertEl.value;
+    if (mode.includes('sound'))   startTone();
+    if (mode.includes('vibrate')) vibrateLoop();
+
+    showNotif();
+  }
+  function stopAlert () {
+    stopTone();
+    navigator.vibrate?.(0);
+    navigator.serviceWorker?.getRegistration()
+      .then(r => r?.getNotifications({ tag: 'gym-timer' })
+      .then(list => list.forEach(n => n.close())));
+  }
+
+  /* vibración prolongada loop */
+  function vibrateLoop () {
+    if (!navigator.vibrate) return;
+    navigator.vibrate(VIB_PATTERN);
+    const h = setInterval(() => navigator.vibrate(VIB_PATTERN), 10_000);
+    window.addEventListener('pointerdown', () => {
+      clearInterval(h); navigator.vibrate(0);
+    }, { once: true, passive: true });
+  }
+
+  /* notificación (PWA/bg) */
+  async function showNotif () {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') await Notification.requestPermission();
+    if (Notification.permission !== 'granted') return;
+
+    navigator.serviceWorker.getRegistration().then(reg => {
+      reg?.showNotification('¡Tiempo!', {
+        body: 'Siguiente serie',
+        tag: 'gym-timer',
+        vibrate: VIB_PATTERN,
+        requireInteraction: true
+      });
+    });
+  }
+
+  /* stop alerts on any interaction */
+  ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
+    window.addEventListener(ev, stopAlert, { passive: true })
+  );
+}
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\utils.js ---
+/* ───────────────────────────────────────────────────────────────────────────
+   Utilidades globales
+   - selectores rápidos
+   - loader overlay
+   - función dbg()   ← NUEVA
+   - registro Service-Worker con recarga auto
+   ───────────────────────────────────────────────────────────────────────── */
+
+export const qs  = (sel, el = document) => el.querySelector(sel);
+export const qsa = (sel, el = document) => el.querySelectorAll(sel);
+export const create = (tag, cls = '') => {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  return e;
+};
+
+/* ---------- num / null ---------- */
+export const nf = v => (v === '' ? null : +v);
+
+/* ---------- tiny logger ---------- */
+export function dbg (ns, ...args) {
+  /*  Desactiva todas las trazas poniendo DEBUG = false                  */
+  const DEBUG = true;
+  /*  Filtra por namespace si quieres – p.ej. if(ns!=='TIMER') return;   */
+  if (!DEBUG) return;
+  console.log(`%c[${ns}]`, 'color:#7c3aed;font-weight:700', ...args);
+}
+
+/* ---------- API / Autenticación ---------- */
+export const TOKEN_KEY = 'gym_token';
+export const API_BASE  =
+  import.meta?.env?.VITE_API_BASE || 'https://appgym-production-64ac.up.railway.app';
+
+export const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` });
+
+/* ---------- Loader Overlay ---------- */
+export function showLoader (on = true) { qs('#loader-overlay')?.classList.toggle('hidden', !on); }
+export const hideLoader = () => showLoader(false);
+
+/* =================  SERVICE-WORKER ================= */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    dbg('SW', 'Registrado', reg);
+
+    /* SW nuevo ya descargado */
+    if (reg.waiting) activateSW(reg);
+
+    /* SW nuevo mientras usamos la app */
+    reg.addEventListener('updatefound', () => {
+      reg.installing.addEventListener('statechange', () => {
+        if (reg.waiting) activateSW(reg);
+      });
+    });
+  });
+
+  /* Recarga cuando hay nuevo controlador */
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    location.reload();
+  });
+}
+
+function activateSW (reg) {
+  reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+}
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\views\app.js ---
+/* =========================================================================
+   GYM TRACKER · Front-end (Netlify) · 2025-06
+   Quick-Add  ·  Timer básico  ·  Cronómetro / Countdown / Alarma (solo audio)
+   ========================================================================= */
+
+/* ------------------------------------------------------------------ CONFIG */
+const API_BASE  = import.meta?.env?.VITE_API_BASE
+               || "https://appgym-production-64ac.up.railway.app";
+const TOKEN_KEY = "gym_token";
+const DEFAULT_REST_SEC = 90;      // temporizador básico (seg)
+
+/* ---------------------------------------------------------------- HELPERS */
+const qs  = (sel, el=document) => el.querySelector(sel);
+const qsa = (sel, el=document) => el.querySelectorAll(sel);
+const create = (t,c="") => { const e=document.createElement(t); if(c) e.className=c; return e; };
+const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` });
+
+/* ---------------------------------------------------------------- ROUTING */
+if (location.pathname.endsWith("/index.html") || location.pathname === "/") {
+  authPage();
+} else {
+  dashboard();
+}
+
+/* ========================================================================
+   1) AUTH PAGE
+   ======================================================================== */
+function authPage() {
+  const form    = qs("#auth-form");
+  const confirm = qs("#confirm");
+  const toggle  = qs("#toggle-link");
+  let mode = "login";
+
+  toggle.onclick = e => { e.preventDefault(); swap(); };
+  function swap() {
+    mode = mode === "login" ? "register" : "login";
+    confirm.classList.toggle("hidden", mode === "login");
+    qs("#form-title").textContent = mode === "login" ? "Iniciar sesión" : "Crear cuenta";
+    qs("#submit-btn").textContent = mode === "login" ? "Entrar" : "Registrar";
+  }
+
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const body = { email: form.email.value, password: form.password.value };
+    if (mode === "register") body.confirm = form.confirm.value;
+
+    const res = await fetch(`${API_BASE}/api/auth/${mode}`, {
+      method : "POST",
+      headers: { "Content-Type":"application/json" },
+      body   : JSON.stringify(body)
+    });
+    if (!res.ok) return alert(await res.text());
+
+    const { token } = await res.json();
+    localStorage.setItem(TOKEN_KEY, token);
+    location.href = "dashboard.html";
+  };
+}
+
+/* ========================================================================
+   2) DASHBOARD
+   ======================================================================== */
+async function dashboard() {
+  if (!localStorage.getItem(TOKEN_KEY)) return location.href = "index.html";
+
+  const container = qs("#view-container");
+  const templates = {
+    profile : qs("#profile-view"),
+    stats   : qs("#stats-view"),
+    machines: qs("#machines-view"),
+    daily   : qs("#daily-view"),
+    reports : qs("#reports-view")
+  };
+
+  window.addEventListener("hashchange", render);
+  render();
+
+  /* ---------------- render según hash ---------------- */
+  async function render() {
+    const view = location.hash.slice(1) || "profile";
+    container.innerHTML = "";
+    const frag = templates[view].content.cloneNode(true);
+    frag.firstElementChild?.classList.add("fade-in");
+    container.appendChild(frag);
+
+    if (view === "profile")  profileView();
+    if (view === "stats")    statsView();
+    if (view === "machines") machinesView();
+    if (view === "daily")    dailyView();
+    if (view === "reports")  reportsView();
+  }
+
+  /* ------------------------------------------------------------------
+     PROFILE
+     ------------------------------------------------------------------ */
+  async function profileView() {
+    const res  = await fetch(`${API_BASE}/api/profile`, { headers: authHeaders() });
+    const data = await res.json();
+    const form = qs("#profile-form");
+
+    Object.entries({
+      firstName:data.firstName, lastName:data.lastName, age:data.age,
+      height:data.heightCm,     weight:data.weightKg
+    }).forEach(([id,val]) => { if (val!=null) form[id].value = val; });
+
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const body = {
+        firstName:form.firstName.value, lastName:form.lastName.value,
+        age:+form.age.value, heightCm:+form.height.value, weightKg:+form.weight.value
+      };
+      await fetch(`${API_BASE}/api/profile`, {
+        method:"PUT", headers:{ ...authHeaders(), "Content-Type":"application/json" },
+        body:JSON.stringify(body)
+      });
+      alert("Perfil actualizado");
+    };
+  }
+
+  /* ------------------------------------------------------------------
+     STATS
+     ------------------------------------------------------------------ */
+  async function statsView() {
+    const form = qs("#stats-form");
+    form["stats-date"].value = new Date().toISOString().slice(0,10);
+
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const nf = v => v==="" ? null : +v;
+      const body = {
+        date:form["stats-date"].value,
+        weightKg:nf(form["stats-weight"].value),
+        waistCm:nf(form["stats-waist"].value),
+        hipCm:nf(form["stats-hip"].value),
+        thighCm:nf(form["stats-thigh"].value),
+        bicepsCm:nf(form["stats-biceps"].value),
+        neckCm:nf(form["stats-neck"].value),
+        chestCm:nf(form["stats-chest"].value),
+        lowerAbsCm:nf(form["stats-lowerAbs"].value),
+        bicepsFlexCm:nf(form["stats-bicepsFlex"].value),
+        forearmCm:nf(form["stats-forearm"].value),
+        calfCm:nf(form["stats-calf"].value)
+      };
+      await fetch(`${API_BASE}/api/stats`, {
+        method:"POST", headers:{ ...authHeaders(), "Content-Type":"application/json" },
+        body:JSON.stringify(body)
+      });
+      alert("Medidas guardadas");
+      form.reset();
+    };
+  }
+
+  /* ------------------------------------------------------------------
+     MACHINES  (edición inline en la misma fila)
+     ------------------------------------------------------------------ */
+  async function machinesView() {
+    const table = qs("#machine-table");
+    const list  = await (await fetch(`${API_BASE}/api/machines`, { headers:authHeaders() })).json();
+    renderRows(list);
+
+    const form = qs("#machine-form");
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const body = {
+        name:form["machine-name"].value,
+        weightKg:+form["machine-kg"].value,
+        reps:+form["machine-reps"].value,
+        sets:+form["machine-sets"].value
+      };
+      await fetch(`${API_BASE}/api/machines`, {
+        method:"POST", headers:{ ...authHeaders(), "Content-Type":"application/json" },
+        body:JSON.stringify(body)
+      });
+      form.reset();
+      renderRows(await (await fetch(`${API_BASE}/api/machines`,{headers:authHeaders()})).json());
+    };
+
+    function renderRows(rows) {
+      table.innerHTML="";
+      rows.forEach(m=>{
+        const tr=create("tr");
+        tr.innerHTML =
+          `<td class="machine-name">${m.machine.name}</td>
+           <td class="machine-kg">${m.weightKg}</td>
+           <td class="machine-reps">${m.reps}</td>
+           <td class="machine-sets">${m.sets}</td>
+           <td class="text-right">
+              <button class="btn-icon btn-edit" title="Editar" data-id="${m.id}">✎</button>
+              <button class="btn-danger"       title="Eliminar" data-id="${m.id}">×</button>
+           </td>`;
+        table.appendChild(tr);
+
+        tr.querySelector(".btn-danger").onclick = async()=>{
+          await fetch(`${API_BASE}/api/machines/${m.id}`,{method:"DELETE",headers:authHeaders()});
+          tr.remove();
+        };
+        tr.querySelector(".btn-edit").onclick = ()=>startEdit(tr,m);
+      });
+    }
+    function startEdit(tr,m){
+      const kgTd=tr.querySelector(".machine-kg"),
+            rTd=tr.querySelector(".machine-reps"),
+            sTd=tr.querySelector(".machine-sets");
+      kgTd.innerHTML=`<input type="number" class="input w-24" value="${m.weightKg}">`;
+      rTd.innerHTML =`<input type="number" class="input w-16" value="${m.reps}">`;
+      sTd.innerHTML =`<input type="number" class="input w-16" value="${m.sets}">`;
+      const td=tr.lastElementChild;td.querySelector(".btn-edit").remove();
+      const save=create("button","btn"); save.textContent="Guardar"; td.prepend(save);
+      save.onclick=()=>saveEdit(tr,m);
+    }
+    async function saveEdit(tr,m){
+      const kg  =+tr.querySelector(".machine-kg input").value,
+            reps=+tr.querySelector(".machine-reps input").value,
+            sets=+tr.querySelector(".machine-sets input").value;
+      await fetch(`${API_BASE}/api/machines`,{
+        method:"POST",headers:{ ...authHeaders(), "Content-Type":"application/json" },
+        body:JSON.stringify({name:m.machine.name,weightKg:kg,reps,sets})
+      });
+      tr.querySelector(".machine-kg").textContent=kg;
+      tr.querySelector(".machine-reps").textContent=reps;
+      tr.querySelector(".machine-sets").textContent=sets;
+      const td=tr.lastElementChild;td.querySelector("button.btn").remove();
+      const edit=create("button","btn-icon btn-edit"); edit.textContent="✎"; edit.title="Editar";
+      edit.onclick=()=>startEdit(tr,m); td.prepend(edit);
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     DAILY  (Quick-Add + Timer básico + Cronómetro / Countdown / Alarma)
+     ------------------------------------------------------------------ */
+  async function dailyView() {
+    const dateIn = qs("#entry-date");
+    dateIn.value = new Date().toISOString().slice(0,10);
+
+    /* --- TIMER BÁSICO entre series ----------------------------------- */
+    const timerBox = qs("#series-timer");
+    const alertSelBasic = qs("#alert-mode");
+    let basicId=null, remaining=DEFAULT_REST_SEC;
+    function startBasic(){clearInterval(basicId);remaining=DEFAULT_REST_SEC;updBasic();
+      basicId=setInterval(()=>{remaining--;updBasic();if(remaining<=0){clearInterval(basicId);alertBasic();}},1000);}
+    function updBasic(){timerBox.textContent=`${remaining}s`;timerBox.classList.toggle("running",remaining<DEFAULT_REST_SEC);}
+    function alertBasic(){if(alertSelBasic.value==="sound")playYouTube();if(alertSelBasic.value==="vibrate")startVibration();}
+
+    /* --- Máquina list ------------------------------------------------- */
+    const machines  = await (await fetch(`${API_BASE}/api/machines`,{headers:authHeaders()})).json();
+    const cont = qs("#daily-machines"); cont.innerHTML="";
+    machines.forEach(m=>{
+      const row=create("div","flex gap-2 machine-row");
+      row.innerHTML=
+        `<span class="flex-1">${m.machine.name}</span>
+         <input type="number" class="input w-24" value="${m.weightKg}" data-id="${m.machine.id}">
+         <input type="number" class="input w-16" value="${m.reps}"      data-r="reps">
+         <input type="number" class="input w-16" value="${m.sets}"      data-r="sets">`;
+      cont.appendChild(row);
+      row.querySelector("[data-r='reps']").addEventListener("change",startBasic);
+    });
+
+    qs("#daily-form").onsubmit = async e=>{
+      e.preventDefault();
+      const exercises=[];
+      cont.querySelectorAll(".machine-row").forEach(r=>{
+        exercises.push({
+          name:r.querySelector("span").textContent.trim(),
+          weightKg:+r.querySelector("[data-id]").value,
+          reps:+r.querySelector("[data-r='reps']").value,
+          sets:+r.querySelector("[data-r='sets']").value
+        });
+      });
+      await fetch(`${API_BASE}/api/daily`,{
+        method:"POST", headers:{ ...authHeaders(), "Content-Type":"application/json" },
+        body:JSON.stringify({date:dateIn.value,exercises})
+      });
+      alert("Registro guardado");
+    };
+
+    /* --- QUICK-ADD ---------------------------------------------------- */
+    qs("#quick-add-btn").onclick = async()=>{
+      const today=new Date().toISOString().slice(0,10);
+      const ex=machines.map(m=>({name:m.machine.name,weightKg:m.weightKg,reps:m.reps,sets:m.sets}));
+      await fetch(`${API_BASE}/api/daily`,{
+        method:"POST",headers:{ ...authHeaders(), "Content-Type":"application/json" },
+        body:JSON.stringify({date:today,exercises:ex})
+      });
+      alert("Registro rápido guardado ✔️");
+    };
+
+    /* ===================================================================
+       === ADVANCED TIMER (cronómetro / cuenta-atrás / alarma) ===========
+       =================================================================== */
+    const modeSel   = qs("#timer-mode");
+    if (!modeSel) return;                          // plantillas antiguas
+
+    const display   = qs("#series-timer");
+    const timeInput = qs("#timer-input");
+    const presetSel = qs("#preset-list");
+    const starBtn   = qs("#add-preset");
+    const playBtn   = qs("#timer-start");
+    const pauseBtn  = qs("#timer-pause");
+    const resetBtn  = qs("#timer-reset");
+    const alertSel  = qs("#alert-mode");
+
+    /* ---- presets ---- */
+    const KEY="gym_presets_v1";
+    const presets=JSON.parse(localStorage.getItem(KEY)||"[]");
+    renderPresetSelect();
+    starBtn.onclick=()=>{presets.push(timeInput.value);localStorage.setItem(KEY,JSON.stringify(presets));renderPresetSelect();};
+    presetSel.onchange=()=>{if(presetSel.value)timeInput.value=presetSel.value;};
+
+    modeSel.onchange=()=>qsa(".countdown-field").forEach(el=>el.style.display=modeSel.value==="stopwatch"?"none":"inline-flex");
+    modeSel.onchange();
+
+    /* ---- estado timer avanzado ---- */
+    let advId=null, advStart=null, advRem=0, vib=false, vibLoop=null;
+    let ytReady=false, ytPlayer=null;
+    loadYTApi();
+
+    playBtn.onclick = ()=>{ if(!advId) startAdv(); };
+    pauseBtn.onclick=()=>{ clearInterval(advId); advId=null; };
+    resetBtn.onclick=()=>{ clearInterval(advId); advId=null; updateAdv(0); stopAlerts(); };
+
+    ["touchstart","pointerdown","keydown"].forEach(ev=>window.addEventListener(ev,stopAlerts,{passive:true}));
+
+    /* ---- funciones timer avanzado ---- */
+    function startAdv(){
+      stopAlerts(); clearInterval(advId);
+      if(modeSel.value==="stopwatch"){
+        advStart=Date.now();
+        advId=setInterval(()=>updateAdv(Date.now()-advStart),1000);
+      }else{
+        advRem = modeSel.value==="countdown" ? hmsToMs(timeInput.value) : msUntilAlarm(timeInput.value);
+        updateAdv(advRem);
+        advId=setInterval(()=>{
+          advRem-=1000;updateAdv(advRem);
+          if(advRem<=0){clearInterval(advId);advId=null;triggerAlert();}
+        },1000);
+      }
+    }
+    function updateAdv(ms){
+      if(ms<0)ms=0;
+      const s=Math.floor(ms/1000)%60,m=Math.floor(ms/60000)%60,h=Math.floor(ms/3600000);
+      display.textContent=[h,m,s].map(v=>String(v).padStart(2,"0")).join(":");
+      display.classList.toggle("running",!!advId);
+    }
+    const hmsToMs=t=>{const[a,b,c]=t.split(":").map(Number);return((a*60+b)*60+c)*1000;};
+    const msUntilAlarm=t=>{
+      const [h,m,s]=t.split(":").map(Number);
+      const now=new Date();const tgt=new Date(now);tgt.setHours(h,m,s,0);if(tgt<=now)tgt.setDate(tgt.getDate()+1);
+      return tgt-now;
+    };
+
+    /* ---- alertas ---- */
+    function triggerAlert(){
+      const mode=alertSel.value;
+      if(mode==="sound")playYouTube();
+      if(mode==="vibrate")startVibration();
+      if(mode==="soundvib" || mode==="vibrateSound"){playYouTube();startVibration();}
+    }
+    function startVibration(){
+      if(!navigator.vibrate)return;
+      vib=true;navigator.vibrate(10000);
+      vibLoop=setInterval(()=>{if(vib)navigator.vibrate(10000);},10000);
+    }
+    function stopAlerts(){
+      vib=false;clearInterval(vibLoop);navigator.vibrate?.(0);
+      if(ytPlayer&&ytReady)ytPlayer.stopVideo();
+    }
+
+    /* ---- YouTube “solo audio” ---- */
+    function loadYTApi(){
+      if(window.YT){onYTReady();return;}
+      const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";
+      document.head.appendChild(s);
+      window.onYouTubeIframeAPIReady=onYTReady;
+    }
+    function onYTReady(){
+      if(ytPlayer)return;
+      const d=create("div");d.id="yt-audio";d.style.cssText="position:absolute;left:-9999px;width:0;height:0;overflow:hidden;";
+      document.body.appendChild(d);
+      ytPlayer=new YT.Player("yt-audio",{
+        height:"0",width:"0",videoId:"JoolQUDWq-k",
+        playerVars:{autoplay:0,controls:0,fs:0,rel:0,playsinline:1,modestbranding:1},
+        events:{onReady:()=>{ytReady=true;}}
+      });
+    }
+    function playYouTube(){
+      if(!ytReady){setTimeout(playYouTube,500);return;}
+      ytPlayer.seekTo(0); ytPlayer.playVideo();
+    }
+    function renderPresetSelect(){presetSel.innerHTML="<option value=''>Presets</option>"+presets.map(p=>`<option>${p}</option>`).join("");}
+  } /* ----- fin dailyView ----- */
+
+  /* ------------------------------------------------------------------
+     REPORTS
+     ------------------------------------------------------------------ */
+  function reportsView() {
+    const fullBtn  = qs("#full-pdf");
+    const rangeBtn = qs("#range-pdf");
+
+    fullBtn.onclick  = () => download(`${API_BASE}/api/report/full`, "progreso.pdf");
+    rangeBtn.onclick = () => {
+      const f = qs("#from").value, t = qs("#to").value;
+      if (!f || !t) return alert("Seleccione ambas fechas");
+      download(`${API_BASE}/api/report/period?from=${f}&to=${t}`, `progreso_${f}_${t}.pdf`);
+    };
+  }
+  async function download(url, file){
+    const res=await fetch(url,{headers:authHeaders()});
+    if(!res.ok)return alert(`Error ${res.status}`);
+    const blob=await res.blob(); const href=URL.createObjectURL(blob);
+    const a=create("a");a.href=href;a.download=file;a.style.display="none";
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(href);a.remove();},800);
+  }
+
+	/* ------------------------------------------------------------------
+     LOGOUT
+     ------------------------------------------------------------------ */  qs("#logout").onclick = () => {
+    localStorage.removeItem(TOKEN_KEY);
+    location.href = "index.html";
+  };
+}
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\views\daily.js ---
+/* VIEW: Registro diario – cronómetro arriba del todo
+----------------------------------------------------------------------- */
+import { api } from "../api.js";
+import { qs, create } from "../utils.js";
+import { initAdvancedTimer } from "../timer.js";
+
+export async function loadDaily(container, machines) {
+  container.innerHTML = `
+    <h2 class="view-title">Registro diario</h2>
+    <div id="timer-anchor"></div>
+
+    <form id="daily-form" class="grid gap-4">
+      <input id="entry-date" type="date" class="input" style="width:max-content" required>
+      <div id="daily-machines" class="grid gap-2"></div>
+      <button class="btn w-max">Guardar registro</button>
+    </form>
+  `;
+
+  /* poner temporizador inmediatamente debajo del título */
+  initAdvancedTimer(qs("#timer-anchor"));
+
+  qs("#entry-date").value = new Date().toISOString().slice(0, 10);
+
+  const box = qs("#daily-machines");
+  renderRows(machines);
+
+  qs("#daily-form").onsubmit = async e => {
+    e.preventDefault();
+    const ex = [];
+    box.querySelectorAll(".row").forEach(r => {
+      ex.push({
+        name     : r.dataset.name,
+        weightKg : +r.querySelector("[data-k]").value,
+        reps     : +r.querySelector("[data-r]").value,
+        sets     : +r.querySelector("[data-s]").value
+      });
+    });
+    await api.post("/api/daily", { date: qs("#entry-date").value, exercises: ex });
+    alert("Registro guardado");
+  };
+
+  function renderRows(list) {
+    box.innerHTML = "";
+    list.forEach(m => {
+      const row = create("div", "flex gap-2 row");
+      row.dataset.name = m.machine.name;
+      row.innerHTML = `
+        <span class="flex-1">${m.machine.name}</span>
+        <input data-k type="number" class="input w-24" value="${m.weightKg}">
+        <input data-r type="number" class="input w-16" value="${m.reps}">
+        <input data-s type="number" class="input w-16" value="${m.sets}">
+      `;
+      row.querySelector("[data-r]").addEventListener("change",
+        () => document.dispatchEvent(new CustomEvent("series-changed")));
+      box.appendChild(row);
+    });
+  }
+}
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\views\machines.js ---
+/* VIEW: Máquinas y pesos ------------------------------------------------- */
+import { api } from "../api.js";
+import { qs, create } from "../utils.js";
+
+export async function loadMachines(container) {
+  container.innerHTML = /*html*/`
+    <h2 class="view-title">Máquinas y pesos</h2>
+
+    <form id="machine-form" class="flex flex-wrap gap-4 mb-4">
+      <input id="machine-name" class="input flex-1" placeholder="Nombre de la máquina" required>
+      <input id="machine-kg"   type="number" class="input" style="width:6rem" placeholder="Kg"    required>
+      <input id="machine-reps" type="number" class="input" style="width:5rem" placeholder="Reps"  required>
+      <input id="machine-sets" type="number" class="input" style="width:5rem" placeholder="Series" required>
+      <button class="btn">Añadir / Actualizar</button>
+    </form>
+
+    <table class="bg-white shadow rounded-xl overflow-hidden">
+      <thead>
+        <tr>
+          <th class="th">Máquina</th><th class="th">Kg</th>
+          <th class="th">Reps</th><th class="th">Series</th><th class="th"></th>
+        </tr>
+      </thead>
+      <tbody id="machine-table"></tbody>
+    </table>
+  `;
+
+  const table = qs("#machine-table");
+  renderRows(await api.get("/api/machines"));
+
+  /* alta / update simple */
+  qs("#machine-form").onsubmit = async e => {
+    e.preventDefault();
+    const f = e.target;
+    await api.post("/api/machines", {
+      name   : f["machine-name"].value,
+      weightKg:+f["machine-kg"].value,
+      reps   : +f["machine-reps"].value,
+      sets   : +f["machine-sets"].value
+    });
+    f.reset();
+    renderRows(await api.get("/api/machines"));
+  };
+
+  /* helpers */
+  function renderRows(rows){
+    table.innerHTML = "";
+    rows.forEach(m=>{
+      const tr = create("tr");
+      tr.innerHTML = `
+        <td class="machine-name">${m.machine.name}</td>
+        <td class="machine-kg">${m.weightKg}</td>
+        <td class="machine-reps">${m.reps}</td>
+        <td class="machine-sets">${m.sets}</td>
+        <td class="text-right">
+          <button class="btn-icon btn-edit" title="Editar">✎</button>
+          <button class="btn-danger"        title="Eliminar">×</button>
+        </td>`;
+      table.appendChild(tr);
+
+      tr.querySelector(".btn-danger").onclick = async ()=>{
+        await api.del(`/api/machines/${m.id}`);
+        tr.remove();
+      };
+
+      tr.querySelector(".btn-edit").onclick = ()=>startEdit(tr, m);
+    });
+  }
+
+  function startEdit(tr, m){
+    tr.querySelector(".machine-kg").innerHTML   = `<input type="number" class="input w-24" value="${m.weightKg}">`;
+    tr.querySelector(".machine-reps").innerHTML = `<input type="number" class="input w-16" value="${m.reps}">`;
+    tr.querySelector(".machine-sets").innerHTML = `<input type="number" class="input w-16" value="${m.sets}">`;
+
+    const tdAct = tr.lastElementChild;
+    const editBtn = tdAct.querySelector(".btn-icon.btn-edit");
+    editBtn.remove();
+
+    const save = create("button","btn-icon btn-save"); save.textContent="💾"; save.title="Guardar";
+    tdAct.prepend(save);
+
+    save.onclick = async ()=>{
+      const kg   = +tr.querySelector(".machine-kg input").value;
+      const reps = +tr.querySelector(".machine-reps input").value;
+      const sets = +tr.querySelector(".machine-sets input").value;
+      await api.post("/api/machines",{ name:m.machine.name, weightKg:kg, reps, sets });
+
+      /* ← vuelve a vista normal */
+      tr.querySelector(".machine-kg").textContent   = kg;
+      tr.querySelector(".machine-reps").textContent = reps;
+      tr.querySelector(".machine-sets").textContent = sets;
+
+      save.remove(); tdAct.prepend(editBtn);
+    };
+  }
+}
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\views\profile.js ---
+import { api } from "../api.js";
+import { qs, dbg } from "../utils.js";
+
+export async function loadProfile (container) {
+  dbg('PROFILE', 'render');
+  container.innerHTML = `
+    <h2 class="view-title">Perfil</h2>
+    <form id="profile-form" class="grid gap-4 max-w-xl">
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:1rem;">
+        <input id="firstName" class="input" placeholder="Nombre" required>
+        <input id="lastName"  class="input" placeholder="Apellidos" required>
+      </div>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:1rem;">
+        <input id="age"    type="number" class="input" placeholder="Edad" required>
+        <input id="height" type="number" class="input" placeholder="Estatura (cm)" required>
+        <input id="weight" type="number" class="input" placeholder="Peso (kg)" required>
+      </div>
+      <button class="btn w-max">Guardar</button>
+    </form>
+  `;
+    const data = await api.get('/api/profile');
+  dbg('PROFILE', 'datos', data);
+  const form = qs("#profile-form");
+  Object.entries({
+    firstName:data.firstName,lastName:data.lastName,age:data.age,
+    height:data.heightCm,weight:data.weightKg
+  }).forEach(([id,v])=>{if(v!=null)form[id].value=v;});
+  form.onsubmit = async e=>{
+    e.preventDefault();
+    await api.put("/api/profile",{
+      firstName:form.firstName.value,lastName:form.lastName.value,
+      age:+form.age.value,heightCm:+form.height.value,weightKg:+form.weight.value
+    });
+    alert("Perfil actualizado");
+  };
+}
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\views\reports.js ---
+/* VIEW: Informes PDF -----------------------------------------------------
+   Descarga PDF completo o por intervalo.
+----------------------------------------------------------------------- */
+import { api }          from "../api.js";
+import { authHeaders,
+         API_BASE,
+         qs,
+         create }       from "../utils.js";
+
+export async function loadReports(container) {
+  container.innerHTML = /*html*/`
+    <h2 class="view-title">Informes PDF</h2>
+    <button id="full-pdf"  class="btn mb-4">PDF completo</button>
+    <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1rem;">
+      <input id="from" type="date" class="input">
+      <input id="to"   type="date" class="input">
+    </div>
+    <button id="range-pdf" class="btn">PDF intervalo</button>
+  `;
+
+  qs("#full-pdf").onclick = () => download("/api/report/full", "progreso.pdf");
+
+  qs("#range-pdf").onclick = () => {
+    const f = qs("#from").value, t = qs("#to").value;
+    if (!f || !t) return alert("Seleccione ambas fechas");
+    download(`/api/report/period?from=${f}&to=${t}`, `progreso_${f}_${t}.pdf`);
+  };
+
+  async function download(uri, filename) {
+    const blob = await fetch(API_BASE + uri, { headers: authHeaders() }).then(r => r.blob());
+    const href = URL.createObjectURL(blob);
+    const a    = create("a");
+    a.href = href; a.download = filename; a.style.display = "none";
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(href); a.remove(); }, 800);
+  }
+}
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\views\rpg.js ---
+/* =========================================================================
+   Vista RPG · Gamificación básica
+   -------------------------------------------------------------------------
+   • Muestra la ficha del héroe y los atributos en tiempo real.
+   • No almacena nada en BD: todos los datos llegan en el objeto `state`.
+   • Más adelante podrás ampliar con combates, avatares GIF, etc.
+   ========================================================================= */
+
+import { qs, create } from "../utils.js";
+
+/**
+ * Carga la pantalla RPG.
+ * @param {HTMLElement} container  – nodo del <main> donde inyectar la vista
+ * @param {Object} [state]         – datos opcionales (XP, niveles, etc.)
+ */
+export async function loadRpg(container, state = demoState()) {
+  container.innerHTML = /*html*/`
+    <section class="rpg-view fade-in">
+      <h2 class="view-title">Aventura RPG</h2>
+
+      <div class="grid gap-6 md:grid-cols-2">
+        <!-- ── FICHA ───────────────────────────────────────────── -->
+        <article class="card shadow">
+          <header class="card-header">
+            <h3>${state.hero.name} <small class="text-muted">· Lvl ${state.hero.level}</small></h3>
+          </header>
+
+          <div class="card-body grid gap-2">
+            <p><strong>Clase:</strong> ${state.hero.class}</p>
+            <p><strong>Experiencia:</strong> ${state.hero.xp} / ${state.hero.xpNext} XP</p>
+
+            <table class="w-full text-sm">
+              <tbody>
+                ${attrRow("Fuerza",     state.stats.str)}
+                ${attrRow("Energía",    state.stats.eng)}
+                ${attrRow("Vitalidad",  state.stats.vit)}
+                ${attrRow("Sabiduría",  state.stats.wis)}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- ── REGISTRO DE EVENTOS ─────────────────────────────── -->
+        <article class="card shadow overflow-auto" style="max-height:28rem;">
+          <header class="card-header"><h3>Diario de misiones</h3></header>
+          <ul id="log-box" class="log-list p-4 space-y-2 text-sm"></ul>
+        </article>
+      </div>
+    </section>
+  `;
+
+  /* muestra últimas 15 entradas de log */
+  const logBox = qs("#log-box");
+  state.log.slice(-15).reverse().forEach(msg => {
+    const li = create("li", "log-entry");
+    li.textContent = msg;
+    logBox.appendChild(li);
+  });
+}
+
+/* helpers ---------------------------------------------------------------- */
+
+function attrRow(label, value) {
+  return `<tr><td class="pr-2">${label}</td><td><progress max="100" value="${value}"></progress> ${value}</td></tr>`;
+}
+
+/* demo inicial si todavía no existen datos reales */
+function demoState() {
+  return {
+    hero: {
+      name   : "Athena",
+      class  : "Exploradora",
+      level  : 3,
+      xp     : 230,
+      xpNext : 400
+    },
+    stats: {
+      str: 48,   // Fuerza
+      eng: 62,   // Energía
+      vit: 55,   // Vitalidad
+      wis: 40    // Sabiduría
+    },
+    log: [
+      "🏋️ Hiciste 15 flexiones ➜ +15 Fuerza, +10 XP",
+      "🍎 Comiste fruta fresca ➜ +5 Vitalidad",
+      "💤 Dormiste 7 h 30 m ➜ +10 Energía",
+      "⚔️ Derrotaste al 'Monstruo de la Pereza'"
+    ]
+  };
+}
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\assets\js\views\stats.js ---
+/* =========================================================================
+   VIEW: Medidas – Formulario + envío al backend
+   ========================================================================= */
+
+import { api } from "../api.js";
+import { qs, nf, dbg } from "../utils.js";   // ← dbg importado
+
+dbg('STATS', 'render view');
+
+export async function loadStats (container) {
+  container.innerHTML = /*html*/`
+    <h2 class="view-title">Medidas</h2>
+
+    <form id="stats-form" class="grid gap-4 max-w-xl">
+      <input id="stats-date" type="date" class="input" style="width:max-content" required>
+
+      <fieldset class="grid" style="grid-template-columns:repeat(3,1fr);gap:1rem;">
+        <legend class="font-semibold">Medidas (cm)</legend>
+        <input id="stats-weight"     type="number" step="0.1" class="input" placeholder="Peso (kg)">
+        <input id="stats-neck"       type="number" class="input" placeholder="Cuello">
+        <input id="stats-chest"      type="number" class="input" placeholder="Pecho">
+        <input id="stats-waist"      type="number" class="input" placeholder="Cintura">
+        <input id="stats-lowerAbs"   type="number" class="input" placeholder="Abd. bajo">
+        <input id="stats-hip"        type="number" class="input" placeholder="Cadera">
+        <input id="stats-biceps"     type="number" class="input" placeholder="Bíceps relaj.">
+        <input id="stats-bicepsFlex" type="number" class="input" placeholder="Bíceps flex.">
+        <input id="stats-forearm"    type="number" class="input" placeholder="Antebrazo">
+        <input id="stats-thigh"      type="number" class="input" placeholder="Muslo">
+        <input id="stats-calf"       type="number" class="input" placeholder="Pantorrilla">
+      </fieldset>
+
+      <button class="btn w-max">Guardar</button>
+    </form>
+  `;
+
+  /* —— hoy por defecto —— */
+  qs('#stats-date').value = new Date().toISOString().slice(0, 10);
+
+  /* —— submit —— */
+  qs('#stats-form').onsubmit = async ev => {
+    ev.preventDefault();
+
+    const f = qs('#stats-form');
+    const body = {
+      date        : f['stats-date'].value,
+      weightKg    : nf(f['stats-weight'].value),
+      neckCm      : nf(f['stats-neck'].value),
+      chestCm     : nf(f['stats-chest'].value),
+      waistCm     : nf(f['stats-waist'].value),
+      lowerAbsCm  : nf(f['stats-lowerAbs'].value),
+      hipCm       : nf(f['stats-hip'].value),
+      bicepsCm    : nf(f['stats-biceps'].value),
+      bicepsFlexCm: nf(f['stats-bicepsFlex'].value),
+      forearmCm   : nf(f['stats-forearm'].value),
+      thighCm     : nf(f['stats-thigh'].value),
+      calfCm      : nf(f['stats-calf'].value)
+    };
+
+    dbg('STATS', 'submit', body);
+    await api.post('/api/stats', body);
+
+    alert('Medidas guardadas');
+    f.reset();
+  };
+}
+
+
+--- E:/Desarrollo/Programas/AppGYM\frontend\src\sw.js ---
+import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute }    from 'workbox-routing';
+import { NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
+
+precacheAndRoute(self.__WB_MANIFEST);
+
+registerRoute(({request}) => request.mode === 'navigate',
+              new NetworkFirst({ cacheName: 'pages' }));
+
+registerRoute(({url, request}) =>
+  url.pathname.startsWith('/api/') && request.method === 'GET',
+  new StaleWhileRevalidate({ cacheName: 'api' }));
