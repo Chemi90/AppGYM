@@ -29,7 +29,7 @@ public class SecurityConfig {
   private final JwtFilter jwtFilter;
   private final UserDetailsService users;
 
-  /* ---------- beans ---------- */
+  /* ---------- password / authManager ---------- */
   @Bean public PasswordEncoder passwordEncoder(){ return new BCryptPasswordEncoder(); }
 
   @Bean
@@ -44,10 +44,16 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration cfg = new CorsConfiguration();
-    cfg.setAllowedOrigins(List.of("https://appgymregistro.netlify.app"));
-    cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    cfg.setAllowedHeaders(List.of(
-            "Authorization", "Content-Type", "Cache-Control", "X-Requested-With"));
+
+    /*  origin de Netlify + previews dinámicas  */
+    cfg.setAllowedOriginPatterns(List.of(
+            "https://appgymregistro.netlify.app",
+            "https://*.netlify.app"
+    ));
+
+    cfg.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+    cfg.setAllowedHeaders(List.of("*"));          // ← cualquiera
+    cfg.setExposedHeaders(List.of("Authorization"));
     cfg.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
@@ -55,7 +61,7 @@ public class SecurityConfig {
     return src;
   }
 
-  /* ---------- cadena ---------- */
+  /* ---------- cadena de filtros ---------- */
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -63,18 +69,11 @@ public class SecurityConfig {
             .csrf(cs -> cs.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-
-                    /* públicos -------------------------------------------------- */
                     .requestMatchers("/api/auth/**", "/actuator/health").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                    /* >>>  INFORMES: se validan dentro del controlador  <<< */
-                    .requestMatchers("/api/report/**").permitAll()
-
-                    /* resto protegido ------------------------------------------ */
+                    .requestMatchers("/api/report/**").permitAll()    // validados internamente
                     .anyRequest().authenticated()
             )
-
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
             .cors(Customizer.withDefaults());
 
