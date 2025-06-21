@@ -1,7 +1,8 @@
 import { api } from "../api.js";
-import { qs } from "../utils.js";
+import { qs, dbg } from "../utils.js";
 
-export async function loadProfile(container){
+export async function loadProfile (container) {
+  dbg('PROFILE', 'render');
   container.innerHTML = `
     <h2 class="view-title">Perfil</h2>
     <form id="profile-form" class="grid gap-4 max-w-xl">
@@ -17,7 +18,8 @@ export async function loadProfile(container){
       <button class="btn w-max">Guardar</button>
     </form>
   `;
-  const data = await api.get("/api/profile");
+    const data = await api.get('/api/profile');
+  dbg('PROFILE', 'datos', data);
   const form = qs("#profile-form");
   Object.entries({
     firstName:data.firstName,lastName:data.lastName,age:data.age,

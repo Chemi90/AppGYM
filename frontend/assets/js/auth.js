@@ -1,62 +1,68 @@
 /* =========================================================================
-   AUTH · Controla login y registro
+   AUTH · Login / Registro  (con dbg logs)
    ========================================================================= */
-import { API_BASE, TOKEN_KEY, qs } from "./utils.js";
+import { API_BASE, TOKEN_KEY, qs, dbg } from "./utils.js";
 
-/* --- elementos --- */
-const form     = qs("#auth-form");
-const confirm  = qs("#confirm");
-const toggle   = qs("#toggle-link");
-const title    = qs("#form-title");
-const submitBt = qs("#submit-btn");
+/* --- DOM refs --- */
+const form     = qs('#auth-form');
+const confirm  = qs('#confirm');
+const toggle   = qs('#toggle-link');
+const title    = qs('#form-title');
+const submitBt = qs('#submit-btn');
 
-let mode = "login";                // estado inicial
+let mode = 'login';                       // estado inicial
+confirm.classList.add('hidden');          // oculto de partida
 
-/* --- asegúrate de que el campo confirm. está oculto de entrada --- */
-confirm.classList.add("hidden");
+dbg('AUTH', 'init');
 
-/* --- alterna login / register -------------------------------------- */
-toggle.addEventListener("click", ev => {
+/* --- toggle login/register ------------------------------------------ */
+toggle.addEventListener('click', ev => {
   ev.preventDefault();
-  mode = mode === "login" ? "register" : "login";
-  confirm.classList.toggle("hidden", mode === "login");
-  title.textContent       = mode === "login" ? "Iniciar sesión" : "Crear cuenta";
-  submitBt.textContent    = mode === "login" ? "Entrar"         : "Registrar";
-  toggle.textContent      = mode === "login"
-      ? "¿No tienes cuenta? Regístrate"
-      : "¿Ya tienes cuenta? Inicia sesión";
+  mode = mode === 'login' ? 'register' : 'login';
+  dbg('AUTH', 'toggle', mode);
+
+  confirm.classList.toggle('hidden', mode === 'login');
+  title.textContent    = mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
+  submitBt.textContent = mode === 'login' ? 'Entrar'         : 'Registrar';
+  toggle.textContent   = mode === 'login'
+      ? '¿No tienes cuenta? Regístrate'
+      : '¿Ya tienes cuenta? Inicia sesión';
 });
 
-/* --- envío ---------------------------------------------------------- */
+/* --- submit ---------------------------------------------------------- */
 form.onsubmit = async ev => {
   ev.preventDefault();
+  dbg('AUTH', 'submit', mode);
 
-  /* bloqueo UI */
-  submitBt.disabled = true;
-  submitBt.textContent = "⏳ Enviando…";
+  /* UI lock */
+  submitBt.disabled   = true;
+  submitBt.textContent = '⏳ Enviando…';
 
-  try{
+  try {
     const body = { email: form.email.value, password: form.password.value };
-    if (mode === "register") body.confirm = form.confirm.value;
+    if (mode === 'register') body.confirm = form.confirm.value;
 
-    const res  = await fetch(`${API_BASE}/api/auth/${mode}`, {
-      method : "POST",
-      headers: { "Content-Type": "application/json" },
+    const url = `${API_BASE}/api/auth/${mode}`;
+    dbg('AUTH', 'FETCH', url, body);
+
+    const res = await fetch(url, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body   : JSON.stringify(body)
     });
 
-    if (!res.ok){
-      alert(await res.text());
-      return;
-    }
+    dbg('AUTH', 'response', res.status);
+    if (!res.ok) { alert(await res.text()); return; }
+
     const { token } = await res.json();
     localStorage.setItem(TOKEN_KEY, token);
-    location.href = "dashboard.html";
-  }catch(err){
+    location.href = 'dashboard.html';
+
+  } catch (err) {
     console.error(err);
-    alert("Error de red");
-  }finally{
+    alert('Error de red');
+  } finally {
     submitBt.disabled  = false;
-    submitBt.textContent = mode === "login" ? "Entrar" : "Registrar";
+    submitBt.textContent = mode === 'login' ? 'Entrar' : 'Registrar';
   }
 };

@@ -3,7 +3,7 @@
 ----------------------------------------------------------------------- */
 import { api } from "../api.js";
 import { qs, nf } from "../utils.js";
-
+dbg('STATS', 'render');
 export async function loadStats(container) {
   container.innerHTML = /*html*/`
     <h2 class="view-title">Medidas</h2>
@@ -34,6 +34,7 @@ export async function loadStats(container) {
 
   /* envío */
   qs("#stats-form").onsubmit = async e => {
+    dbg('STATS', 'submit', body);
     e.preventDefault();
     const f = qs("#stats-form");
     await api.post("/api/stats", {
